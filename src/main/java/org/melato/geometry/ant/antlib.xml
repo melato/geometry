@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<antlib xmlns:current="ant:current">
+  <typedef name="simple.tracker" classname="org.melato.gpx.util.SimplePathTracker"/>
+  <typedef name="sequential.tracker" classname="org.melato.geometry.gpx.SequentialPathTracker"/>
+  
+  <taskdef name="track" classname="org.melato.geometry.ant.PathTask"/>
+  <taskdef name="simple.track" classname="org.melato.geometry.ant.SimplePathTask"/>
+</antlib>
