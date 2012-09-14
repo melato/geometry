@@ -1,0 +1,46 @@
+<project name="path"
+	xmlns:ant="antlib:org.melato.ant"
+	xmlns:bus="antlib:org.melato.bus.stage"
+	xmlns:export="antlib:org.melato.export"
+	xmlns:geometry="antlib:org.melato.geometry.ant"
+	>
+
+	<property name="build.dir" value="./target"/>
+
+	<ant:app/>
+
+	<target name="init">
+		<mkdir dir="${build.dir}"/>
+	</target>
+
+	<bus:simple.tracker id="simple.id"/>
+	
+	<geometry:sequential.tracker id="sequential.id"/>
+
+	<target name="simple.path" depends="init">
+		<fail unless="track"/>
+		<fail unless="route"/>
+		<geometry:simple.track
+			trackFile="${track}"
+			routeFile="${route}"
+			outputDir="${build.dir}"
+		>
+		</geometry:simple.track>
+	</target>
+
+	<target name="path" depends="init">
+		<fail unless="track"/>
+		<fail unless="route"/>
+		<geometry:track
+			trackFile="${track}"
+			routeFile="${route}"
+			outputDir="${build.dir}"
+		>
+			<property name="pathTracker" ref="simple.id"/>
+		</geometry:track>
+	</target>
+
+	<target name="clean">
+		<delete dir="${build.dir}"/>
+	</target>
+</project>

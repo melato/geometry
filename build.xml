@@ -1,0 +1,4 @@
+<project name="org.melato.geometry">	
+	<import file="${dev.dir}/project/java.xml"/>
+	<property name="project.version" value="0.1"/>
+</project>
