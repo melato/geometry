@@ -6,6 +6,9 @@
 	>
 
 	<property name="build.dir" value="./target"/>
+	<property name="routes.dir" value="/main/dev/oasa/data/target/gpx/"/>
+	<property name="track.dir" value="/main/dev/oasa/data/tracks/${route}/"/>
+	<property name="direction" value="1"/>
 
 	<ant:app/>
 
@@ -18,26 +21,42 @@
 	<geometry:sequential.tracker id="sequential.id"/>
 
 	<target name="simple.path" depends="init">
-		<fail unless="track"/>
 		<fail unless="route"/>
 		<geometry:simple.track
-			trackFile="${track}"
-			routeFile="${route}"
+			routeFile="${routes.dir}/${route}-${direction}.gpx"
 			outputDir="${build.dir}"
 		>
+			<fileset dir="${track.dir}" includes="*.gpx"/>
 		</geometry:simple.track>
 	</target>
 
 	<target name="path" depends="init">
-		<fail unless="track"/>
 		<fail unless="route"/>
 		<geometry:track
-			trackFile="${track}"
-			routeFile="${route}"
+			routeFile="${routes.dir}/${route}-${direction}.gpx"
 			outputDir="${build.dir}"
 		>
-			<property name="pathTracker" ref="simple.id"/>
+			<property name="pathTracker" ref="sequential.id"/>
+			<fileset dir="${track.dir}" includes="*.gpx"/>
 		</geometry:track>
+	</target>
+
+	<target name="sequential.path" depends="init">
+		<fail unless="route"/>
+		<geometry:sequential.track
+			routeFile="${routes.dir}/${route}-${direction}.gpx"
+			outputDir="${build.dir}"
+		>
+			<fileset dir="${track.dir}" includes="*.gpx"/>
+		</geometry:sequential.track>
+	</target>
+
+	<target name="distance" depends="init">
+		<geometry:distance
+			outputDir="${build.dir}"
+		>
+			<fileset dir="${track.dir}" includes="*.gpx"/>
+		</geometry:distance>
 	</target>
 
 	<target name="clean">

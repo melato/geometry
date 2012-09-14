@@ -48,16 +48,16 @@ public class StandardTrackTable extends TrackTable {
     addColumn(new TrackColumn("track-route") {
       @Override
       public Object getValue() {
-        return tracker.getPosition();
+        return distance.getDistance() - tracker.getPosition();
       }}
     );
-    addColumn(new TrackColumn("closest_waypoint") {
+    addColumn(new TrackColumn("path_waypoint") {
       @Override
       public Object getValue() {
         return closestWaypoint.getName();
       }}
     );
-    addColumn(new TrackColumn("closest_index") {
+    addColumn(new TrackColumn("path_index") {
       @Override
       public Object getValue() {
         return closestIndex;
@@ -72,9 +72,9 @@ public class StandardTrackTable extends TrackTable {
   }
 
   @Override
-  public void compute(Waypoint p) {
-    super.compute(p);
-    closestIndex = path.findNearestIndex(p);
+  public void compute() {
+    super.compute();
+    closestIndex = tracker.getNearestIndex();
     closestWaypoint = path.getWaypoints()[closestIndex];
   }
   

@@ -13,6 +13,8 @@ import org.melato.gpx.util.PathTracker;
  */
 public class SequentialPathTracker implements PathTracker {
   private Path path;
+  private Metric metric = new GlobalDistance();
+  
 
   /** The last location */
   private Point location;
@@ -30,8 +32,16 @@ public class SequentialPathTracker implements PathTracker {
   
   private boolean inPath;
   
-  private Metric metric = new GlobalDistance();
-  
+  @Override
+  public void clearLocation() {
+    location = null;
+    nearestIndex = -1;
+    pathPosition = 0;
+    nearestWaypoint = null;
+    nearestDistance = 0;
+    inPath = false;
+  }
+
   public SequentialPathTracker() {
     super();
     setPath(new Path());
@@ -44,15 +54,14 @@ public class SequentialPathTracker implements PathTracker {
   
   @Override
   public void setPath(Path path) {
+    clearLocation();
     this.path = path;
-    /*
     if ( path.size() > 0 && path.getLength() < 200000) {
       // for path lengths < 200 Km, use local distance
       metric = new LocalDistance(path.getWaypoints()[0]);
     } else {
       metric = new GlobalDistance();
     } 
-    */
   }
 
   @Override
@@ -82,6 +91,7 @@ public class SequentialPathTracker implements PathTracker {
     nearestWaypoint = path.getWaypoints()[nearestIndex];      
     nearestDistance = metric.distance(location, nearestWaypoint);
   }
+  
   
   /**
    * Interpolate the position between two points.
@@ -186,7 +196,6 @@ public class SequentialPathTracker implements PathTracker {
         }
       }
     }
-    location = point;
   }
   
   /**

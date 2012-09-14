@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.melato.app.ant.AppType;
+import org.melato.ant.FileTask;
 import org.melato.common.util.Filenames;
 import org.melato.export.CsvWriter;
 import org.melato.export.TableWriter;
@@ -15,18 +15,14 @@ import org.melato.gpx.Waypoint;
 import org.melato.gpx.util.Path;
 import org.melato.gpx.util.PathTracker;
 
-public class PathTask extends AppType {
-  protected File trackFile;
+public class PathTask extends FileTask {
   protected File routeFile;
   protected TableWriter tableWriter;
   protected PathTracker pathTracker;
+  private   GPX routeGPX;
 
   public PathTask() {
     super();
-  }
-
-  public void setTrackFile(File trackFile) {
-    this.trackFile = trackFile;
   }
 
   public void setRouteFile(File routeFile) {
@@ -46,16 +42,26 @@ public class PathTask extends AppType {
     return parser.parse(file);
   }
 
+  private GPX getRouteGPX() throws IOException {
+    if ( routeGPX == null ) {
+      routeGPX = readGPX(routeFile);
+    }
+    return routeGPX;
+  }
+  
   protected TrackTable createTable() {
     return new StandardTrackTable();    
   }
-  public void execute() throws IOException {
-    GPX route = readGPX(routeFile);
-    GPX track = readGPX(trackFile);
+  @Override
+  public void processFile(File file) throws IOException {
+    System.out.println( file );
+    GPX route = getRouteGPX();
+    GPX track = readGPX(file);
     TrackTable table = createTable();
     Path path = new Path(route.getRoutes().get(0).getWaypoints());
     table.setPath(path);
     pathTracker.setPath(path);
+    pathTracker.clearLocation();
     table.setTracker(pathTracker);
     List<Waypoint> waypoints = new ArrayList<Waypoint>();
     for( Waypoint p: GPXIterators.trackWaypoints(track.getTracks())) {
@@ -63,7 +69,7 @@ public class PathTask extends AppType {
     }
     table.setTrackWaypoints(waypoints);
     try {
-      tableWriter.tableOpen(Filenames.getBasename(trackFile));
+      tableWriter.tableOpen(Filenames.getBasename(file));
       table.writeTable(tableWriter);
    } finally {
       tableWriter.tableClose();

@@ -84,11 +84,7 @@ public class TrackTable {
     super();
   }
 
-  public void compute(Waypoint p) {
-    waypoint = p;
-    trackWaypoints.add(p);
-    distance.add(p);
-    tracker.setLocation(p);
+  protected void compute() {
   }
   
   protected void addColumn(TrackColumn column) {
@@ -110,10 +106,10 @@ public class TrackTable {
       startTime = trackWaypoints.get(0).getTime().getTime();
     for( int i = 0; i < size; i++ ) {
       waypointIndex = i;
-      Waypoint p = trackWaypoints.get(i);
-      distance.add(p);
-      tracker.setLocation(p);
-      compute(p);
+      waypoint = trackWaypoints.get(i);
+      tracker.setLocation(waypoint);
+      distance.add(waypoint);
+      compute();
       for( int j = 0; j < row.length; j++ ) {
         row[j] = columns.get(j).getValue();
       }

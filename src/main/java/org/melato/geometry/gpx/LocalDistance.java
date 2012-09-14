@@ -15,7 +15,7 @@ public class LocalDistance implements Metric {
   @Override
   public float distance(Point p1, Point p2) {
     float x = (p2.getLon() - p1.getLon()) * lonScale;
-    float y = (p2.getLat() - p2.getLat()) * latScale;    
+    float y = (p2.getLat() - p1.getLat()) * latScale;    
     return (float) Math.sqrt(x*x + y*y);
   }
 

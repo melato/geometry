@@ -5,4 +5,6 @@
   
   <taskdef name="track" classname="org.melato.geometry.ant.PathTask"/>
   <taskdef name="simple.track" classname="org.melato.geometry.ant.SimplePathTask"/>
+  <taskdef name="sequential.track" classname="org.melato.geometry.ant.SequentialPathTask"/>
+  <taskdef name="distance" classname="org.melato.geometry.ant.DistanceTask"/>
 </antlib>
