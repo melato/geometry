@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.melato.export.TableWriter;
+import org.melato.geometry.gpx.PathTracker;
+import org.melato.geometry.gpx.SpeedTracker;
 import org.melato.gpx.Waypoint;
 import org.melato.gpx.util.Path;
-import org.melato.gpx.util.PathTracker;
+import org.melato.gpx.util.TrackingAlgorithm;
 
 /**
  * Used to generate a table of path computations for each point on a track.
@@ -19,6 +21,7 @@ public class TrackTable {
   // input properties
   protected Path path;
   protected PathTracker tracker;
+  protected SpeedTracker speed;
   protected List<TrackColumn> columns = new ArrayList<TrackColumn>();
   protected List<Waypoint> trackWaypoints;  
   
@@ -48,8 +51,13 @@ public class TrackTable {
     return path;
   }
 
+  
   public PathTracker getTracker() {
     return tracker;
+  }
+
+  public TrackingAlgorithm getTrackingAlgorithm() {
+    return tracker.getTracker();
   }
 
   public List<Waypoint> getTrackWaypoints() {
@@ -74,6 +82,7 @@ public class TrackTable {
 
   public void setTracker(PathTracker tracker) {
     this.tracker = tracker;
+    this.speed = new SpeedTracker(tracker);
   }
 
   public void setTrackWaypoints(List<Waypoint> trackWaypoints) {
@@ -116,5 +125,6 @@ public class TrackTable {
       tableWriter.tableRow( row );
     }
   }
+
   
 }

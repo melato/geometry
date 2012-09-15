@@ -4,13 +4,11 @@ import org.melato.geometry.gpx.SequentialPathTracker;
 
 
 public class SequentialTrackTable extends StandardTrackTable {
-  private boolean inPath;  
-  
+  private SequentialPathTracker tracker;
   @Override
   public void compute() {
     super.compute();
-    SequentialPathTracker tracker = (SequentialPathTracker) getTracker();
-    inPath = tracker.isInPath();
+    tracker = (SequentialPathTracker) getTrackingAlgorithm();
   }
 
 
@@ -19,9 +17,13 @@ public class SequentialTrackTable extends StandardTrackTable {
     addColumn(new TrackColumn("inPath") {
       @Override
       public Object getValue() {
-        return inPath;
-      }}
-    );
+        return tracker.isInPath();
+      }});
+    addColumn(new TrackColumn("currentIndex") {
+      @Override
+      public Object getValue() {
+        return tracker.getCurrentIndex();
+      }});
   }
 
 }

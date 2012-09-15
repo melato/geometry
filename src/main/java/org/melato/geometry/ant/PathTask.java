@@ -9,18 +9,18 @@ import org.melato.ant.FileTask;
 import org.melato.common.util.Filenames;
 import org.melato.export.CsvWriter;
 import org.melato.export.TableWriter;
-import org.melato.geometry.gpx.Algorithm;
+import org.melato.geometry.gpx.PathTracker;
 import org.melato.gpx.GPX;
 import org.melato.gpx.GPXParser;
 import org.melato.gpx.Waypoint;
 import org.melato.gpx.util.Path;
-import org.melato.gpx.util.PathTracker;
+import org.melato.gpx.util.TrackingAlgorithm;
 
 public class PathTask extends FileTask {
   protected File routeFile;
   protected TableWriter tableWriter;
-  protected PathTracker pathTracker = Algorithm.newPathTracker();
-  private   GPX routeGPX;
+  protected PathTracker pathTracker = new PathTracker();
+  private   Path path;
 
   public PathTask() {
     super();
@@ -34,32 +34,32 @@ public class PathTask extends FileTask {
     tableWriter = new CsvWriter(outputDir);
   }  
 
-  public void setPathTracker(PathTracker pathTracker) {
-    this.pathTracker = pathTracker;
+  public void setTracker(TrackingAlgorithm pathTracker) {
+    this.pathTracker = new PathTracker(pathTracker);
   }
 
+  protected Path getPath() throws IOException {
+    if ( path == null ) {
+      GPX gpx = readGPX(routeFile);
+      path = new Path(gpx.getRoutes().get(0).getWaypoints());
+      System.out.println("route waypoints: " + path.size());
+    }
+    return path;    
+  }
   protected GPX readGPX(File file) throws IOException {
     GPXParser parser = new GPXParser();
     return parser.parse(file);
   }
 
-  private GPX getRouteGPX() throws IOException {
-    if ( routeGPX == null ) {
-      routeGPX = readGPX(routeFile);
-    }
-    return routeGPX;
-  }
-  
   protected TrackTable createTable() {
     return new StandardTrackTable();    
   }
   @Override
   public void processFile(File file) throws IOException {
+    Path path = getPath();
     System.out.println( file );
-    GPX route = getRouteGPX();
     GPX track = readGPX(file);
     TrackTable table = createTable();
-    Path path = new Path(route.getRoutes().get(0).getWaypoints());
     table.setPath(path);
     pathTracker.setPath(path);
     pathTracker.clearLocation();

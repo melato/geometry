@@ -18,6 +18,6 @@ public class SequentialPathTask extends PathTask {
 
   public SequentialPathTask() {
     super();
-    setPathTracker( new SequentialPathTracker() );
+    setTracker( new SequentialPathTracker() );
   }
 }

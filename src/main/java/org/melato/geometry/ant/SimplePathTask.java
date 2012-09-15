@@ -18,6 +18,6 @@ public class SimplePathTask extends PathTask {
 
   public SimplePathTask() {
     super();
-    setPathTracker( new SimplePathTracker() );
+    setTracker( new SimplePathTracker() );
   }
 }

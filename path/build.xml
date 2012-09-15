@@ -36,7 +36,7 @@
 			routeFile="${routes.dir}/${route}-${direction}.gpx"
 			outputDir="${build.dir}"
 		>
-			<property name="pathTracker" ref="sequential.id"/>
+			<property name="tracker" ref="sequential.id"/>
 			<fileset dir="${track.dir}" includes="*.gpx"/>
 		</geometry:track>
 	</target>

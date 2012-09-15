@@ -11,11 +11,7 @@ import org.melato.gpx.Waypoint;
  *
  */
 public class StandardTrackTable extends TrackTable {
-  protected int       closestIndex;
   protected Waypoint  closestWaypoint;
-  protected long  speedStartTime;
-  protected float speedStartPosition;
-  protected float speed;
   
   public StandardTrackTable() {
     addColumn(new TrackColumn("time") {
@@ -57,13 +53,13 @@ public class StandardTrackTable extends TrackTable {
     addColumn(new TrackColumn("path_waypoint") {
       @Override
       public Object getValue() {
-        return closestWaypoint.getName();
+        return getPath().getWaypoint(getTracker().getNearestIndex()).getName();
       }}
     );
     addColumn(new TrackColumn("path_index") {
       @Override
       public Object getValue() {
-        return closestIndex;
+        return getTracker().getNearestIndex();
       }}
     );
     addColumn(new TrackColumn("closest_d") {
@@ -75,34 +71,36 @@ public class StandardTrackTable extends TrackTable {
     addColumn(new TrackColumn("route speed") {
       @Override
       public Object getValue() {
-        return speed;
+        return speed.getSpeed();
       }});
     addColumn(new TrackColumn("time to end") {
       @Override
       public Object getValue() {
-        return (path.getLength() - tracker.getPosition())/speed;
+        float time = speed.getRemainingTime(path.size()-1);
+        if ( Float.isNaN(time)) {
+          return "";
+        }
+        return (int) time;
       }});
+    addColumn(new TrackColumn("ETA") {
+      @Override
+      public Object getValue() {
+        return speed.getETA(path.size()-1);
+      }});
+    /*
+    addColumn(new TrackColumn("algorithm") {
+      @Override
+      public Object getValue() {
+        return getTrackingAlgorithm();
+      }});
+    */
   }
 
-  float computeSpeed() {
-    long time = waypoint.getTime().getTime();
-    if ( speedStartTime == 0 ) {
-      speedStartTime = time;
-      speedStartPosition = tracker.getPosition();
-      return 0f;
-    } else {
-      time -= speedStartTime;
-      float distance = tracker.getPosition() - speedStartPosition;
-      return distance * 1000f / time;
-    }      
-  }
-  
  @Override
   public void compute() {
     super.compute();
-    closestIndex = tracker.getNearestIndex();
-    closestWaypoint = path.getWaypoints()[closestIndex];
-    speed = computeSpeed();
+    closestWaypoint = path.getWaypoint(tracker.getNearestIndex());
+    speed.compute();
   }
   
   

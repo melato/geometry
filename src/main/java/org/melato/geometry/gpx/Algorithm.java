@@ -1,10 +1,10 @@
 package org.melato.geometry.gpx;
 
-import org.melato.gpx.util.PathTracker;
-import org.melato.gpx.util.SimplePathTracker;
+import org.melato.gpx.util.TrackingAlgorithm;
+
 
 public class Algorithm {
-  public static PathTracker newPathTracker() {
-    return new SimplePathTracker();
+  public static TrackingAlgorithm newTrackingAlgorithm() {
+    return new SequentialPathTracker();
   }
 }

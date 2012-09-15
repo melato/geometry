@@ -9,7 +9,7 @@ public class SimpleTrackTable extends StandardTrackTable {
   
   @Override
   public void compute() {
-    SimplePathTracker simpleTracker = (SimplePathTracker) tracker;
+    SimplePathTracker simpleTracker = (SimplePathTracker) getTrackingAlgorithm();
     near2 = simpleTracker.find2Neighbors(waypoint);
   }
 
