@@ -90,8 +90,8 @@ public class TrackTable {
   protected void addColumn(TrackColumn column) {
     columns.add(column);
   }
-  public long getElapsedTime() {
-    return waypoint.getTime().getTime() - startTime;
+  public float getElapsedTime() {
+    return (waypoint.getTime().getTime() - startTime)/1000f;
   }
   public void writeTable(TableWriter tableWriter) throws IOException {
     tracker.setPath(path);

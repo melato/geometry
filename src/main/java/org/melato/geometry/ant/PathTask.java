@@ -9,6 +9,7 @@ import org.melato.ant.FileTask;
 import org.melato.common.util.Filenames;
 import org.melato.export.CsvWriter;
 import org.melato.export.TableWriter;
+import org.melato.geometry.gpx.Algorithm;
 import org.melato.gpx.GPX;
 import org.melato.gpx.GPXParser;
 import org.melato.gpx.Waypoint;
@@ -18,7 +19,7 @@ import org.melato.gpx.util.PathTracker;
 public class PathTask extends FileTask {
   protected File routeFile;
   protected TableWriter tableWriter;
-  protected PathTracker pathTracker;
+  protected PathTracker pathTracker = Algorithm.newPathTracker();
   private   GPX routeGPX;
 
   public PathTask() {

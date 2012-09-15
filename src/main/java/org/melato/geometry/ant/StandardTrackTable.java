@@ -13,6 +13,9 @@ import org.melato.gpx.Waypoint;
 public class StandardTrackTable extends TrackTable {
   protected int       closestIndex;
   protected Waypoint  closestWaypoint;
+  protected long  speedStartTime;
+  protected float speedStartPosition;
+  protected float speed;
   
   public StandardTrackTable() {
     addColumn(new TrackColumn("time") {
@@ -69,13 +72,37 @@ public class StandardTrackTable extends TrackTable {
         return Earth.distance(waypoint, closestWaypoint);
       }}
     );
+    addColumn(new TrackColumn("route speed") {
+      @Override
+      public Object getValue() {
+        return speed;
+      }});
+    addColumn(new TrackColumn("time to end") {
+      @Override
+      public Object getValue() {
+        return (path.getLength() - tracker.getPosition())/speed;
+      }});
   }
 
-  @Override
+  float computeSpeed() {
+    long time = waypoint.getTime().getTime();
+    if ( speedStartTime == 0 ) {
+      speedStartTime = time;
+      speedStartPosition = tracker.getPosition();
+      return 0f;
+    } else {
+      time -= speedStartTime;
+      float distance = tracker.getPosition() - speedStartPosition;
+      return distance * 1000f / time;
+    }      
+  }
+  
+ @Override
   public void compute() {
     super.compute();
     closestIndex = tracker.getNearestIndex();
     closestWaypoint = path.getWaypoints()[closestIndex];
+    speed = computeSpeed();
   }
   
   
