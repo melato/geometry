@@ -21,24 +21,31 @@ public class SequentialPathTracker implements PathTracker {
   
   /** The index of the waypoint closest to the last location in path terms */
   private int   nearestIndex = -1;
-  /** The last computed path position */ 
+  
+/** The last computed path position */ 
   private float pathPosition;
   
-  /** The waypoint at the nearest index */
-  private Point nearestWaypoint;
+  /**
+   * The waypoint we're currently following.
+   * May differ from nearestIndex by 1
+   */
+  private int   currentIndex = -1;
+
+  /** The waypoint at the current index */
+  private Point currentWaypoint;
   
-  /** The distance from location to the nearestWaypoint */
-  private float nearestDistance;
+  /** The distance from location to currentWaypoint */
+  private float currentDistance;
   
   private boolean inPath;
   
   @Override
   public void clearLocation() {
     location = null;
-    nearestIndex = -1;
+    currentIndex = -1;
     pathPosition = 0;
-    nearestWaypoint = null;
-    nearestDistance = 0;
+    currentWaypoint = null;
+    currentDistance = 0;
     inPath = false;
   }
 
@@ -66,6 +73,9 @@ public class SequentialPathTracker implements PathTracker {
 
   @Override
   public int getNearestIndex() {
+    if ( nearestIndex == -1 && path.size() > 0 ) {
+      nearestIndex = path.findNearestIndex(pathPosition);
+    }
     return nearestIndex;
   }
 
@@ -87,9 +97,9 @@ public class SequentialPathTracker implements PathTracker {
   
   private void setCurrentPosition(Point point, int index) {
     location = point;
-    nearestIndex = index;
-    nearestWaypoint = path.getWaypoints()[nearestIndex];      
-    nearestDistance = metric.distance(location, nearestWaypoint);
+    currentIndex = index;
+    currentWaypoint = path.getWaypoints()[currentIndex];      
+    currentDistance = metric.distance(location, currentWaypoint);
   }
   
   
@@ -109,17 +119,17 @@ public class SequentialPathTracker implements PathTracker {
     if ( index1 < 0 ) {
       // we are before the start.  our position is negative
       return - metric.distance(point, path.getWaypoints()[index2]);
-    }
-    if ( index2 >= path.size() ) {
+    } else if ( index2 >= path.size() ) {
       // we are past the end.
       return path.getLength(index2) + metric.distance(point, path.getWaypoints()[index2]);
+    } else {
+      // we are inside the path
+      float d1 = metric.distance(point, path.getWaypoints()[index1]);
+      float d2 = metric.distance(point, path.getWaypoints()[index2]);
+      float p1 = path.getLength(index1);
+      float p2 = path.getLength(index2);
+      return p1 + (p2-p1)*d1/(d1+d2);
     }
-    // we are inside the path
-    float d1 = metric.distance(point, path.getWaypoints()[index1]);
-    float d2 = metric.distance(point, path.getWaypoints()[index2]);
-    float p1 = path.getLength(index1);
-    float p2 = path.getLength(index2);
-    return p1 + (p2-p1)*d1/(d1+d2);    
   }
   
   void getDistances(Point point, int[] indexes, float[] distances) {
@@ -134,19 +144,21 @@ public class SequentialPathTracker implements PathTracker {
   void setInitialLocation(Point point) {
     inPath = false;
     setCurrentPosition(point, path.findNearestIndex(point));
-    if ( nearestIndex == 0 ) {
+    if ( currentIndex == 0 ) {
       // assume we're before the start
-      pathPosition = -nearestDistance;
-    } else if ( nearestIndex + 1 >= path.size() ) {
+      pathPosition = -currentDistance;
+      nearestIndex = 0;
+    } else if ( currentIndex + 1 >= path.size() ) {
       // assume we're past the end
-      pathPosition = path.getLength() + nearestDistance;
+      pathPosition = path.getLength() + currentDistance;
+      nearestIndex = path.size();
     } else {
-      float d1 = metric.distance(point, path.getWaypoints()[nearestIndex-1]);
-      float d2 = metric.distance(point, path.getWaypoints()[nearestIndex+1]);
+      float d1 = metric.distance(point, path.getWaypoints()[currentIndex-1]);
+      float d2 = metric.distance(point, path.getWaypoints()[currentIndex+1]);
       if ( d1 < d2 ) {
-        pathPosition = interpolatePosition(path, point, nearestIndex - 1, nearestIndex);
+        pathPosition = interpolatePosition(path, point, currentIndex - 1, currentIndex);
       } else {
-        pathPosition = interpolatePosition(path, point, nearestIndex, nearestIndex + 1);
+        pathPosition = interpolatePosition(path, point, currentIndex, currentIndex + 1);
       }
     }
   }
@@ -156,27 +168,28 @@ public class SequentialPathTracker implements PathTracker {
     if ( location != null && isSameLocation(point, location)) {
       return;
     }
+    nearestIndex = -1;
     if ( location == null ) {
       setInitialLocation(point);
     } else {
       if ( inPath ) {
-        float d = metric.distance(point, nearestWaypoint);
-        if ( d <= nearestDistance ) {
+        float d = metric.distance(point, currentWaypoint);
+        if ( d <= currentDistance ) {
           // we seem to be moving towards the nearest waypoint
-          nearestDistance = d;
+          currentDistance = d;
           location = point;
-          pathPosition = interpolatePosition(path, point, nearestIndex - 1, nearestIndex);
+          pathPosition = interpolatePosition(path, point, currentIndex - 1, currentIndex);
         } else {
           // we seem to be moving away from nearest waypoint
           // check if we're approaching the next one
-          if ( nearestIndex < path.size() - 1 ) {
-            Point nextWaypoint = path.getWaypoints()[nearestIndex+1];
+          if ( currentIndex < path.size() - 1 ) {
+            Point nextWaypoint = path.getWaypoints()[currentIndex+1];
             float dNext = metric.distance(point, nextWaypoint);
             float dLocationNext = metric.distance(location, nextWaypoint);
             if ( dNext < dLocationNext ) {
               // ok, we're moving closer to the next waypoint
-              pathPosition = interpolatePosition(path, point, nearestIndex, nearestIndex + 1);
-              setCurrentPosition(point, nearestIndex+1);
+              pathPosition = interpolatePosition(path, point, currentIndex, currentIndex + 1);
+              setCurrentPosition(point, currentIndex+1);
             }
           } else {
             // we've gone past the end of the path and we're no longer following it.
@@ -191,7 +204,7 @@ public class SequentialPathTracker implements PathTracker {
         // This is not very accurate, but we also check along the way
         Point previousLocation = location;
         setInitialLocation(point);
-        if ( isNear() || isApproaching(previousLocation, point, nearestIndex-1, nearestIndex+1)) {
+        if ( isNear() || isApproaching(previousLocation, point, currentIndex-1, currentIndex+1)) {
           inPath = true;
         }
       }
@@ -207,9 +220,9 @@ public class SequentialPathTracker implements PathTracker {
   private boolean isNear() {
     if ( path.size() < 2 )
       return false;    
-    if ( nearestIndex > 0 && nearestDistance < path.getLength(nearestIndex-1,nearestIndex))
+    if ( currentIndex > 0 && currentDistance < path.getLength(currentIndex-1,currentIndex))
       return true;
-    if ( nearestIndex < path.size() - 1 && nearestDistance < path.getLength(nearestIndex,nearestIndex+1)) {
+    if ( currentIndex < path.size() - 1 && currentDistance < path.getLength(currentIndex,currentIndex+1)) {
       return true;
     }
     return false;
