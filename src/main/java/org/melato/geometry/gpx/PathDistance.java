@@ -1,8 +1,8 @@
-package org.melato.geometry.ant;
+package org.melato.geometry.gpx;
 
-import org.melato.geometry.gpx.GlobalDistance;
-import org.melato.geometry.gpx.Metric;
-import org.melato.gpx.Waypoint;
+import org.melato.gpx.GlobalDistance;
+import org.melato.gpx.Metric;
+import org.melato.gpx.Point;
 
 /**
  * Computes the path of a sequence of waypoints, as each point is added.
@@ -12,7 +12,7 @@ import org.melato.gpx.Waypoint;
 public class PathDistance {
   private Metric metric;
   private double distance;
-  private Waypoint last;
+  private Point last;
   
   
   public PathDistance() {
@@ -23,12 +23,16 @@ public class PathDistance {
     this.metric = metric;
   }
 
-  public float add(Waypoint p) {
+  // skip the next waypoint in distance computations.
+  public void skipNext() {
+    last = null;
+  }
+  
+  public void add(Point p) {
     if (last != null) {
       distance += metric.distance(last, p);
     }
     last = p;
-    return getDistance();
   }
   public float getDistance() {
     return (float) distance;

@@ -2,7 +2,6 @@ package org.melato.geometry.gpx;
 
 import org.melato.gpx.Point;
 import org.melato.gpx.util.Path;
-import org.melato.gpx.util.TrackingAlgorithm;
 
 /**
  * Matches actual track locations to a fixed path.

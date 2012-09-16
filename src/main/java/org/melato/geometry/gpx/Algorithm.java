@@ -1,6 +1,5 @@
 package org.melato.geometry.gpx;
 
-import org.melato.gpx.util.TrackingAlgorithm;
 
 
 public class Algorithm {

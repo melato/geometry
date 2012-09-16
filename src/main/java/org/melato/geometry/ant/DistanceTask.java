@@ -7,11 +7,12 @@ import org.melato.ant.FileTask;
 import org.melato.common.util.Filenames;
 import org.melato.export.CsvWriter;
 import org.melato.export.TableWriter;
-import org.melato.geometry.gpx.GlobalDistance;
-import org.melato.geometry.gpx.LocalDistance;
+import org.melato.geometry.gpx.PathDistance;
 import org.melato.gpx.Earth;
 import org.melato.gpx.GPX;
 import org.melato.gpx.GPXParser;
+import org.melato.gpx.GlobalDistance;
+import org.melato.gpx.LocalDistance;
 import org.melato.gpx.Waypoint;
 
 public class DistanceTask extends FileTask {

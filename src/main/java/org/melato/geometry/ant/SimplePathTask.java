@@ -1,6 +1,6 @@
 package org.melato.geometry.ant;
 
-import org.melato.gpx.util.SimplePathTracker;
+import org.melato.geometry.gpx.SimplePathTracker;
 
 /**
  * Given a GPX track and GPX route, compute the path distance of each point on the track.

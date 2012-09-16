@@ -5,11 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.melato.export.TableWriter;
+import org.melato.geometry.gpx.PathDistance;
 import org.melato.geometry.gpx.PathTracker;
 import org.melato.geometry.gpx.SpeedTracker;
+import org.melato.geometry.gpx.TrackingAlgorithm;
 import org.melato.gpx.Waypoint;
 import org.melato.gpx.util.Path;
-import org.melato.gpx.util.TrackingAlgorithm;
 
 /**
  * Used to generate a table of path computations for each point on a track.

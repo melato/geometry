@@ -10,11 +10,11 @@ import org.melato.common.util.Filenames;
 import org.melato.export.CsvWriter;
 import org.melato.export.TableWriter;
 import org.melato.geometry.gpx.PathTracker;
+import org.melato.geometry.gpx.TrackingAlgorithm;
 import org.melato.gpx.GPX;
 import org.melato.gpx.GPXParser;
 import org.melato.gpx.Waypoint;
 import org.melato.gpx.util.Path;
-import org.melato.gpx.util.TrackingAlgorithm;
 
 public class PathTask extends FileTask {
   protected File routeFile;
