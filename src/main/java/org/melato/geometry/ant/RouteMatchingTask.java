@@ -8,8 +8,11 @@ import java.util.List;
 
 import org.melato.ant.FileTask;
 import org.melato.common.util.Filenames;
+import org.melato.export.CsvWriter;
+import org.melato.export.TableWriter;
 import org.melato.gpx.GPX;
 import org.melato.gpx.GPXParser;
+import org.melato.gpx.Point;
 import org.melato.gpx.Waypoint;
 import org.melato.gpx.util.Path;
 import org.melato.gpx.util.ProximityFinder;
@@ -18,28 +21,44 @@ public class RouteMatchingTask extends FileTask {
   private File trackFile;
   private ProximityFinder trackProximity;
   private List<RouteScore> scores = new ArrayList<RouteScore>();
+  protected TableWriter tableWriter;
+  private int minScore = 1;
+  private int maxCount;
 
   static class RouteScore implements Comparable<RouteScore> {
-    String routeName;
-    int   score;
-    public RouteScore(String routeName, int score) {
+    String  routeName;
+    int     nearCount = 0;
+    int     directionChanges;
+    int     dominantDirection;
+    float   meanSeparation;
+    public RouteScore(String routeName) {
       this.routeName = routeName;
-      this.score = score;
-    }
+    }    
     @Override
     public int compareTo(RouteScore t) {
-      return t.score - this.score;
+      return t.nearCount - this.nearCount;
     }
     @Override
     public String toString() {
-      return routeName + " " + score;
+      return routeName + " " + nearCount;
     }
   }
-  
-  
+    
   public void setTrackFile(File trackFile) {
     this.trackFile = trackFile;
   }
+
+  public void setMinScore(int minScore) {
+    this.minScore = minScore;
+  }
+
+  public void setMaxCount(int maxCount) {
+    this.maxCount = maxCount;
+  }
+  
+  public void setOutputDir(File outputDir) {
+    tableWriter = new CsvWriter(outputDir);
+  }  
 
   GPX readGPX(File file) throws IOException {
     GPXParser parser = new GPXParser();
@@ -64,7 +83,7 @@ public class RouteMatchingTask extends FileTask {
     return trackProximity;
   }
   
-  private int matchRoute(List<Waypoint> waypoints, String name ) {
+  private int nearCount(List<Waypoint> waypoints) {
     Path path = new Path(waypoints);
     ProximityFinder track = getTrackProximityFinder();
     int size = path.size();
@@ -86,6 +105,73 @@ public class RouteMatchingTask extends FileTask {
     }
     return match;
   }
+
+  private static int sign(int d) {
+    if ( d > 0 ) return 1;
+    if ( d < 0 ) return -1;
+    return 0;
+  }
+  
+  private int maxIndex(int[] values) {
+    if ( values.length == 0 )
+      return -1;
+    int maxValue = values[0];
+    int maxIndex = 0;
+    for( int i = 1; i < values.length; i++ ) {
+      if ( values[i] > maxValue ) {
+        maxValue = values[i];
+        maxIndex = i;
+      }
+    }
+    return maxIndex;
+  }
+  
+  private void computeScore(List<Waypoint> route, RouteScore score) {
+    Path path = new Path(route);
+    ProximityFinder track = getTrackProximityFinder();
+    double separationSum = 0;
+    int size = path.size();
+    int nearCount = 0;
+    int directionChanges = 0;
+    int[] directionCounts = new int[3];
+    int lastDirection = 0;
+    int lastTrackIndex = -1;
+    for( int i = 0; i < size; i++ ) {
+      float targetDistance = 0;
+      if ( i > 0 ) {
+        targetDistance = path.getLength(i-1,i);
+      }
+      if ( i + 1 < size ) {
+        targetDistance = Math.max(targetDistance, path.getLength(i,i+1));
+      }
+      track.setTargetDistance(targetDistance);
+      Point p = path.getWaypoint(i);
+      int trackIndex = track.findClosestNearby(p);
+      if ( trackIndex >= 0 ) {
+        nearCount++;
+        separationSum += track.getMetric().distance(p,  track.getWaypoints()[trackIndex]);
+        if ( nearCount > 1 ) {
+          int direction = sign( trackIndex - lastTrackIndex );
+          directionCounts[1+direction]++;
+          if ( nearCount > 2 && lastDirection != direction ) {
+            directionChanges++;            
+          }
+          lastDirection = direction;
+        }
+        lastTrackIndex = trackIndex;
+      }
+      /*
+      if ( track.isNear(p)) {
+        nearCount++;        
+      }
+      */
+    }
+    score.nearCount = nearCount;
+    score.meanSeparation = (float) (separationSum / nearCount);
+    score.dominantDirection = maxIndex(directionCounts) - 1;
+    score.directionChanges = directionChanges;
+  }
+
   
   @Override
   protected void processFile(File file) throws IOException {
@@ -95,9 +181,11 @@ public class RouteMatchingTask extends FileTask {
     for( int i = 0; i < gpx.getRoutes().size(); i++ ) {
       String routeName = basename;
       if ( i > 0 )
-        routeName += "." + i; 
-      int score = matchRoute( gpx.getRoutes().get(i).getWaypoints(), routeName );
-      scores.add( new RouteScore(routeName, score));
+        routeName += "." + i;
+      RouteScore score = new RouteScore(routeName);
+      computeScore(gpx.getRoutes().get(i).getWaypoints(), score);
+      //score.nearCount = nearCount( gpx.getRoutes().get(i).getWaypoints() );
+      scores.add(score);
     }
   }
 
@@ -106,9 +194,28 @@ public class RouteMatchingTask extends FileTask {
     super.processFiles();
     RouteScore[] scores = this.scores.toArray(new RouteScore[0]);
     Arrays.sort(scores);
-    System.out.println( "scores: " + scores.length);
-    for( int i = 0; i < 10 && i < scores.length; i++ ) {
-      System.out.println( scores[i]);
+    try {
+      tableWriter.tableOpen(Filenames.getBasename(trackFile));
+      tableWriter.tableHeaders(new String[] {
+          "route", "nearCount", "meanSeparation", "directionChanges", "dominantDirection"});
+      for( int i = 0; i < scores.length; i++ ) {
+        RouteScore score = scores[i];
+        if ( maxCount > 0 && i >= maxCount ) {
+          break;
+        }
+        if ( scores[i].nearCount < minScore ) {
+          break;
+        }
+        tableWriter.tableRow(new Object[] {
+            score.routeName,
+            score.nearCount,
+            score.meanSeparation,
+            score.directionChanges,
+            score.dominantDirection,
+        });
+      }
+    } finally {
+      tableWriter.tableClose();
     }
   }
   

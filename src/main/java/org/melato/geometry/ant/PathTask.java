@@ -16,6 +16,14 @@ import org.melato.gpx.GPXParser;
 import org.melato.gpx.Waypoint;
 import org.melato.gpx.util.Path;
 
+/**
+ * Ant path for testing a PathTracker algorithm.
+ * For each input track file, it outpus a csv file in the output directory
+ * The output file contains one row for each track waypoint with the corresponding information from the path tracker. 
+ *  
+ * @author Alex Athanasopoulos
+ *
+ */
 public class PathTask extends FileTask {
   protected File routeFile;
   protected TableWriter tableWriter;
@@ -26,6 +34,10 @@ public class PathTask extends FileTask {
     super();
   }
 
+  /**
+   * The route to use 
+   * @param routeFile A GPX file with a route
+   */
   public void setRouteFile(File routeFile) {
     this.routeFile = routeFile;
   }
@@ -72,7 +84,7 @@ public class PathTask extends FileTask {
     try {
       tableWriter.tableOpen(Filenames.getBasename(file));
       table.writeTable(tableWriter);
-   } finally {
+    } finally {
       tableWriter.tableClose();
     }
   }

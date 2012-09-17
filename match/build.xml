@@ -9,12 +9,19 @@
 	<property name="routes.dir" value="/main/dev/oasa/data/target/gpx/"/>
 	<property name="tracks.dir" value="/main/dev/oasa/data/tracks/"/>
 	<property name="track" value="${tracks.dir}/409/409_201209122308.gpx"/>
+	<property name="build.dir" value="./target"/>
 
 	<ant:app/>
 
-	<target name="match">
+	<target name="init">
+		<mkdir dir="${build.dir}"/>
+	</target>
+	
+	<target name="match" depends="init">
 		<geometry:match.route
 			trackFile="${track}"
+			outputDir="${build.dir}"
+			minScore="1"
 		>
 			<fileset dir="${routes.dir}" includes="*.gpx"/>
 		</geometry:match.route>
