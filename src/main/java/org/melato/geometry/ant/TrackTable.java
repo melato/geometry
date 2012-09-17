@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.melato.export.TableWriter;
-import org.melato.geometry.gpx.PathDistance;
+import org.melato.geometry.gpx.PathLength;
 import org.melato.geometry.gpx.PathTracker;
 import org.melato.geometry.gpx.SpeedTracker;
 import org.melato.geometry.gpx.TrackingAlgorithm;
@@ -27,7 +27,7 @@ public class TrackTable {
   protected List<Waypoint> trackWaypoints;  
   
   // computation state
-  protected PathDistance distance = new PathDistance();
+  protected PathLength distance = new PathLength();
   protected Waypoint waypoint;
   protected int     waypointIndex;
   private   long    startTime;
@@ -65,7 +65,7 @@ public class TrackTable {
     return trackWaypoints;
   }
 
-  public PathDistance getDistance() {
+  public PathLength getDistance() {
     return distance;
   }
 

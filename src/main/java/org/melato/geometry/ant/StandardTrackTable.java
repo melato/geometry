@@ -35,7 +35,7 @@ public class StandardTrackTable extends TrackTable {
     addColumn(new TrackColumn("track_distance") {
       @Override
       public Object getValue() {
-        return distance.getDistance();
+        return distance.getLength();
       }}
     );
     addColumn(new TrackColumn("route_distance") {
@@ -47,7 +47,7 @@ public class StandardTrackTable extends TrackTable {
     addColumn(new TrackColumn("track-route") {
       @Override
       public Object getValue() {
-        return distance.getDistance() - tracker.getPosition();
+        return distance.getLength() - tracker.getPosition();
       }}
     );
     addColumn(new TrackColumn("path_waypoint") {
