@@ -1,0 +1,23 @@
+<project name="path"
+	xmlns:ant="antlib:org.melato.ant"
+	xmlns:bus="antlib:org.melato.bus.stage"
+	xmlns:export="antlib:org.melato.export"
+	xmlns:geometry="antlib:org.melato.geometry.ant"
+	default="match"
+	>
+
+	<property name="routes.dir" value="/main/dev/oasa/data/target/gpx/"/>
+	<property name="tracks.dir" value="/main/dev/oasa/data/tracks/"/>
+	<property name="track" value="${tracks.dir}/409/409_201209122308.gpx"/>
+
+	<ant:app/>
+
+	<target name="match">
+		<geometry:match.route
+			trackFile="${track}"
+		>
+			<fileset dir="${routes.dir}" includes="*.gpx"/>
+		</geometry:match.route>
+	</target>
+
+</project>
