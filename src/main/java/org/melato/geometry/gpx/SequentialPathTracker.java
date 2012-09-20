@@ -8,6 +8,7 @@ import org.melato.gpx.Metric;
 import org.melato.gpx.Point;
 import org.melato.gpx.Waypoint;
 import org.melato.gpx.util.Path;
+import org.melato.log.Log;
 
 /**
  * PathTracker algorithm that assumes the incoming positions follow the set path.
@@ -185,6 +186,7 @@ public class SequentialPathTracker implements TrackingAlgorithm {
     if ( location == null ) {
       setInitialLocation(point);
     } else {
+      Log.info( "seq.tracker inPath=" + inPath + " currentIndex=" + currentIndex);
       if ( inPath ) {
         float d = metric.distance(point, currentWaypoint);
         if ( d <= currentDistance ) {
@@ -192,22 +194,25 @@ public class SequentialPathTracker implements TrackingAlgorithm {
           currentDistance = d;
           location = point;
           pathPosition = interpolatePosition(path, point, currentIndex - 1, currentIndex);
+          Log.info( "approaching " + currentWaypoint );
         } else {
           // we seem to be moving away from current waypoint
-          // check if we're approaching the next one
-          if ( currentIndex < path.size() - 1 ) {
-            Point nextWaypoint = path.getWaypoints()[currentIndex+1];
+          // check if we're approaching one of the following waypoints
+          for( int i = currentIndex; i + 1 < path.size(); i++ ) {
+            Point nextWaypoint = path.getWaypoints()[i+1];
             float dNext = metric.distance(point, nextWaypoint);
             float dLocationNext = metric.distance(location, nextWaypoint);
             if ( dNext < dLocationNext ) {
-              // ok, we're moving closer to the next waypoint
-              pathPosition = interpolatePosition(path, point, currentIndex, currentIndex + 1);
-              setCurrentPosition(point, currentIndex+1);
+              // ok, we're moving closer to the nextWaypoint
+              pathPosition = interpolatePosition(path, point, i, i + 1);
+              setCurrentPosition(point, i+1);
+              Log.info( "moved to: " + currentWaypoint );
+              break;
             }
-          } else {
-            // we've gone past the end of the path and we're no longer following it.
-            setInitialLocation(point);
           }
+          Log.info( "left path");
+          // we've gone past the end of the path and we're no longer following it.
+          setInitialLocation(point);
         }
       } else {
         // decide whether we're following the path if both:

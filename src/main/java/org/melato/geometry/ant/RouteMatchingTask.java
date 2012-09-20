@@ -24,6 +24,7 @@ public class RouteMatchingTask extends FileTask {
   protected TableWriter tableWriter;
   private int minScore = 1;
   private int maxCount;
+  private float targetDistance = 100;
 
   static class RouteScore implements Comparable<RouteScore> {
     String  routeName;
@@ -59,6 +60,10 @@ public class RouteMatchingTask extends FileTask {
   public void setOutputDir(File outputDir) {
     tableWriter = new CsvWriter(outputDir);
   }  
+  
+  public void setTargetDistance(float targetDistance) {
+    this.targetDistance = targetDistance;
+  }
 
   GPX readGPX(File file) throws IOException {
     GPXParser parser = new GPXParser();
@@ -79,6 +84,7 @@ public class RouteMatchingTask extends FileTask {
       }
       trackProximity = new ProximityFinder();
       trackProximity.setWaypoints(list);
+      trackProximity.setTargetDistance(targetDistance);
     }
     return trackProximity;
   }
@@ -137,14 +143,6 @@ public class RouteMatchingTask extends FileTask {
     int lastDirection = 0;
     int lastTrackIndex = -1;
     for( int i = 0; i < size; i++ ) {
-      float targetDistance = 0;
-      if ( i > 0 ) {
-        targetDistance = path.getLength(i-1,i);
-      }
-      if ( i + 1 < size ) {
-        targetDistance = Math.max(targetDistance, path.getLength(i,i+1));
-      }
-      track.setTargetDistance(targetDistance);
       Point p = path.getWaypoint(i);
       int trackIndex = track.findClosestNearby(p);
       if ( trackIndex >= 0 ) {
