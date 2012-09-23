@@ -101,7 +101,7 @@ public class TrackTable {
     columns.add(column);
   }
   public float getElapsedTime() {
-    return (waypoint.getTime().getTime() - startTime)/1000f;
+    return (waypoint.getTime() - startTime)/1000f;
   }
   public void writeTable(TableWriter tableWriter) throws IOException {
     tracker.setPath(path);
@@ -113,7 +113,7 @@ public class TrackTable {
     tableWriter.tableHeaders( headers );
     int size = trackWaypoints.size();
     if ( size > 0 )
-      startTime = trackWaypoints.get(0).getTime().getTime();
+      startTime = trackWaypoints.get(0).getTime();
     for( int i = 0; i < size; i++ ) {
       waypointIndex = i;
       waypoint = trackWaypoints.get(i);

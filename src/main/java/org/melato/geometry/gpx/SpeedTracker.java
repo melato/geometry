@@ -42,14 +42,14 @@ public class SpeedTracker {
     Point location = tracker.getLocation();
     if ( location == null )
       return null;
-    return new Date(location.getTime().getTime() + (long) (time * 1000)); 
+    return new Date(location.getTime() + (long) (time * 1000)); 
   }
   
   private float computeSpeed() {
     Point location = tracker.getLocation();
     if (location == null)
       return Float.NaN;
-    long time = location.getTime().getTime();
+    long time = location.getTime();
     if ( speedStartTime == 0 ) {
       speedStartTime = time;
       speedStartPosition = tracker.getPosition();
