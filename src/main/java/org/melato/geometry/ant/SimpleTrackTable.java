@@ -1,7 +1,7 @@
 package org.melato.geometry.ant;
 
 import org.melato.geometry.gpx.SimplePathTracker;
-import org.melato.gpx.Earth;
+import org.melato.gps.Earth;
 
 
 public class SimpleTrackTable extends StandardTrackTable {

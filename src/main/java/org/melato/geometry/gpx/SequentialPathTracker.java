@@ -2,10 +2,10 @@ package org.melato.geometry.gpx;
 
 import java.util.List;
 
+import org.melato.gps.Point;
 import org.melato.gpx.GlobalDistance;
 import org.melato.gpx.LocalDistance;
 import org.melato.gpx.Metric;
-import org.melato.gpx.Point;
 import org.melato.gpx.Waypoint;
 import org.melato.gpx.util.Path;
 import org.melato.log.Log;

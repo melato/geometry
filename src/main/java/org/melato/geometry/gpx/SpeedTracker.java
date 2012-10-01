@@ -2,7 +2,7 @@ package org.melato.geometry.gpx;
 
 import java.util.Date;
 
-import org.melato.gpx.Point;
+import org.melato.gps.Point;
 
 /** Computes speed and expected times of arrival on a path */
 public class SpeedTracker {

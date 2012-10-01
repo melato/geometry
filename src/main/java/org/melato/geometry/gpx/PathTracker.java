@@ -1,6 +1,6 @@
 package org.melato.geometry.gpx;
 
-import org.melato.gpx.Point;
+import org.melato.gps.Point;
 import org.melato.gpx.util.Path;
 
 /**

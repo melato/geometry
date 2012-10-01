@@ -1,6 +1,6 @@
 package org.melato.geometry.ant;
 
-import org.melato.gpx.Earth;
+import org.melato.gps.Earth;
 import org.melato.gpx.Waypoint;
 
 
