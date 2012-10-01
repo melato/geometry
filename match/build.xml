@@ -6,8 +6,8 @@
 	default="match"
 	>
 
-	<property name="routes.dir" value="/main/dev/oasa/data/target/gpx/"/>
-	<property name="tracks.dir" value="/main/dev/oasa/data/tracks/"/>
+	<property name="routes.dir" value="${user.home}/data/oasa.model/build/gpx/"/>
+	<property name="tracks.dir" value="${user.home}/data/oasa.tracks/"/>
 	<property name="track" value="${tracks.dir}/409/409_201209122308.gpx"/>
 	<property name="build.dir" value="./target"/>
 
