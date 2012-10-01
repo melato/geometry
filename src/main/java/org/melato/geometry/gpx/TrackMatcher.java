@@ -30,7 +30,11 @@ public class TrackMatcher {
    * The number of direction changes is the number of times that the computed direction
    * changes from the previously computed direction.
    * Mean-separation is the mean distance between each matching pair between route points and track points.
-   * The built-in score comparator sorts better scores first. 
+   * The built-in score comparator sorts by:
+   *   nearCount desc,
+   *   dominantDirection,
+   *   directionChanges asc,
+   *   meanSeparation asc. 
    * */
   public static class Score implements Comparable<Score> {
     String  routeName;
