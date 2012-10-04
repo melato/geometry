@@ -10,7 +10,7 @@ import org.melato.gps.Point;
 public class RollingSpeedTest {
   public @Test void constant() {
     RollingSpeedManager speedManager = new RollingSpeedManager(new TestMetric());
-    RollingSpeed speed5 = speedManager.addRollingSpeed(5);
+    RollingSpeed speed5 = speedManager.getRollingSpeed(5);
     for( int i = 0; i < 20; i++ ) {
       Point p = new Point( i, 0);
       p.setTime(i*1000L);
@@ -20,15 +20,15 @@ public class RollingSpeedTest {
   }
   public @Test void half() {
     RollingSpeedManager speedManager = new RollingSpeedManager(new TestMetric());
-    RollingSpeed speed = speedManager.addRollingSpeed(5);
+    RollingSpeed speed = speedManager.getRollingSpeed(5);
     for( int i = 0; i < 4; i++ ) {
       Point p = new Point( i, 0);
-      p.setTime(10+i*1000L); // avoid 0 time
+      p.setTime(i*1000L);
       speedManager.addPoint(p);
     }
     for( int i = 4; i < 6; i++ ) {
       Point p = new Point( 4, 0);
-      p.setTime(10+i*1000L);
+      p.setTime(i*1000L);
       speedManager.addPoint(p);
     }
     Assert.assertEquals(5, speed.getCount());

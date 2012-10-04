@@ -10,14 +10,15 @@ import org.melato.util.CircularList;
 
 
 /** Computes rolling average speeds over multiple time intervals,
- * e.g. every 1 minute, every 5 minutes, every 1 and 5 minutes, etc. */
+ * e.g. every 1 minute, every 5 minutes, every 1 and 5 minutes, etc.
+ */
 public class RollingSpeedManager {
   public class RollingSpeed {
     /** How many milliseconds to average over. */
     long    intervalTime;
-    int     count; // the number of Samples
-    double  distance; // the distance covered by our samples
-    long    time; // the time covered by our samples
+    int     count; // the number of spans
+    double  distance; // the distance covered by our spans
+    long    time; // the time covered by our spans
     
     RollingSpeed(long intervalTime) {
       super();
@@ -38,7 +39,7 @@ public class RollingSpeedManager {
     public long getTime() {
       return time;
     }
-    void add(Sample sample) {
+    void add(Span sample) {
       count++;  // add the new sample
       distance += sample.distance;
       time += sample.timeMillis;
@@ -52,10 +53,10 @@ public class RollingSpeedManager {
       count = 0;
       distance = 0;
       time = 0;
-      int size = samples.size();
+      int size = spans.size();
       for( int i = 0; i < size; i++ ) {
         count++;
-        Sample s = samples.get(i);
+        Span s = spans.get(i);
         distance += s.distance;
         time += s.getTime();
         if ( time > intervalTime ) {
@@ -67,7 +68,7 @@ public class RollingSpeedManager {
       // find out which samples are no longer needed.
       if ( time > intervalTime ) {
         for( int last = count - 1; last > 0; last-- ) {
-          Sample s = samples.get(last);
+          Span s = spans.get(last);
           long sampleTime = s.getTime();
           if ( time - sampleTime < intervalTime ) {
             break;
@@ -79,11 +80,11 @@ public class RollingSpeedManager {
       }      
     }
   }
-  public class Sample {
+  public class Span {
     float distance;    // the traveled distance since the previous sample.
     long  timeMillis;  // the traveled time since the previous sample.
     
-    public Sample(float distance, long timeMillis) {
+    public Span(float distance, long timeMillis) {
       super();
       this.distance = distance;
       this.timeMillis = timeMillis;
@@ -101,8 +102,8 @@ public class RollingSpeedManager {
     
   }
   private List<RollingSpeed> speeds = new ArrayList<RollingSpeed>();
-  /** Recent samples.  The last sample is [0]. */
-  private List<Sample> samples = new CircularList<Sample>();
+  /** Recent spans.  The most recent span is [0]. */
+  private List<Span> spans = new CircularList<Span>();
 
   private RollingSpeed maxInterval;
   
@@ -113,7 +114,7 @@ public class RollingSpeedManager {
     this.metric = metric;
   }
   
-  public RollingSpeed addRollingSpeed(int seconds) {
+  private RollingSpeed addRollingSpeed(int seconds) {
     RollingSpeed interval = new RollingSpeed(seconds * 1000L);
     speeds.add(interval);
     interval.recompute();
@@ -121,6 +122,17 @@ public class RollingSpeedManager {
       maxInterval = interval;
     }
     return interval;    
+  }
+  
+  public RollingSpeed getRollingSpeed(int seconds) {
+    long time = seconds * 1000L;
+    int size = speeds.size();
+    for( int i = 0; i < size; i++ ) {
+      RollingSpeed speed = speeds.get(i);
+      if ( speed.getIntervalTime() == time)
+        return speed;
+    }
+    return addRollingSpeed(seconds);
   }
   
   public void addPoint(Point p) {
@@ -131,12 +143,15 @@ public class RollingSpeedManager {
       lastPoint = p;
       return;
     }
-    Sample sample = new Sample(metric.distance(lastPoint,  p),
+    Span span = new Span(metric.distance(lastPoint,  p),
         Point.timeDifferenceMillis(lastPoint, p));
     lastPoint = p;
-    
+    addSpan(span);
+  }  
+
+  public void addSpan(Span sample) {
     // insert the new sample at the beginning of the list.
-    samples.add(0, sample);
+    spans.add(0, sample);
     
     // adjust all speeds
     for (RollingSpeed interval: speeds) {
@@ -146,8 +161,8 @@ public class RollingSpeedManager {
 
     // remove samples that are no longer needed.
     // These are the samples with index >= maxInterval.count.
-    for( int i = samples.size() - 1; i >= maxInterval.count; i-- ) {
-      samples.remove(i);
+    for( int i = spans.size() - 1; i >= maxInterval.count; i-- ) {
+      spans.remove(i);
     }
   }  
 }
