@@ -5,7 +5,6 @@ import java.util.List;
 import org.melato.gps.Point;
 import org.melato.gpx.Waypoint;
 import org.melato.gpx.util.Path;
-import org.melato.gpx.util.ProximityFinder;
 
 
 /**
