@@ -37,14 +37,14 @@ public class TrackMatcher {
    *   meanSeparation asc. 
    * */
   public static class Score implements Comparable<Score> {
-    String  routeName;
+    Object  id;
     int     nearCount = 0;
     int     directionChanges;
     int     dominantDirection;
     float   meanSeparation;
     
-    public Score(String routeName) {
-      this.routeName = routeName;
+    public Score(Object id) {
+      this.id = id;
     }    
     @Override
     public int compareTo(Score t) {
@@ -71,15 +71,19 @@ public class TrackMatcher {
     }
     @Override
     public String toString() {
-      return routeName + " " + nearCount;
+      return id + " " + nearCount;
     }
     /**
-     * The name of the route, as passed in the constructor.
+     * The id of the score, as passed in the constructor.
      * Used for identification.
      * @return
      */
-    public String getRouteName() {
-      return routeName;
+    public Object getId() {
+      return id;
+    }
+    
+    public void setId(Object id) {
+      this.id = id;
     }
     /**
      * The number of route points that are near the track.
@@ -107,9 +111,7 @@ public class TrackMatcher {
     public float getMeanSeparation() {
       return meanSeparation;
     }
-    public void setRouteName(String routeName) {
-      this.routeName = routeName;
-    }
+    
     public void setNearCount(int nearCount) {
       this.nearCount = nearCount;
     }

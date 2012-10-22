@@ -110,7 +110,7 @@ public class RouteMatchingTask extends FileTask {
           break;
         }
         tableWriter.tableRow(new Object[] {
-            score.getRouteName(),
+            score.getId(),
             score.getNearCount(),
             score.getMeanSeparation(),
             score.getDirectionChanges(),
@@ -120,6 +120,5 @@ public class RouteMatchingTask extends FileTask {
     } finally {
       tableWriter.tableClose();
     }
-  }
-  
+  }  
 }
