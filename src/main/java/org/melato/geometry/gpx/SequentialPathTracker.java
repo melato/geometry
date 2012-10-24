@@ -13,6 +13,11 @@ import org.melato.log.Log;
 /**
  * PathTracker algorithm that assumes the incoming positions follow the set path.
  * It uses the previous position(s) to determine if the location is moving as expected along the path
+ * At any given point, the tracker is either in-path or out-of-path and also has a current path point.
+ * The current path point is the point that we are approaching.
+ * At the first point, it is out-of-path and the current path point is the closest one.
+ * It goes in-path, if it is near the path and it is approaching a path waypoint.
+ * It goes out-of-path, if it is not  approaching any path waypoint after the current one.
  */
 public class SequentialPathTracker implements TrackingAlgorithm {
   private Path path;
@@ -211,7 +216,7 @@ public class SequentialPathTracker implements TrackingAlgorithm {
             }
           }
           Log.info( "left path");
-          // we've gone past the end of the path and we're no longer following it.
+          // we are not approaching any path waypoint.  Assume we are no longer following it.
           setInitialLocation(point);
         }
       } else {
@@ -248,10 +253,8 @@ public class SequentialPathTracker implements TrackingAlgorithm {
   }
   
   /**
-   * Return true if distance between the current point and a waypoint
-   * is smaller than the corresponding distance of the previous point
-   * for any path waypoint between index1 and index2 (inclusive)
-   * @param last
+   * Return true if current is closer than previous to any path waypoint between index1 and index2, inclusive
+   * @param previous
    * @param current
    * @param index1
    * @param index2

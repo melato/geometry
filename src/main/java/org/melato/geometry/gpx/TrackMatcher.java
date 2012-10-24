@@ -137,16 +137,15 @@ public class TrackMatcher {
    * @param score
    */
   public void computeScore(List<Waypoint> route, Score score) {
-    Path path = new Path(route);
     double separationSum = 0;
-    int size = path.size();
+    int size = route.size();
     int nearCount = 0;
     int directionChanges = 0;
     int[] directionCounts = new int[3];
     int lastDirection = 0;
     int lastTrackIndex = -1;
     for( int i = 0; i < size; i++ ) {
-      Point p = path.getWaypoint(i);
+      Point p = route.get(i);
       int trackIndex = proximity.findClosestNearby(p);
       if ( trackIndex >= 0 ) {
         nearCount++;

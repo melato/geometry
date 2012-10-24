@@ -10,6 +10,8 @@ import org.melato.ant.FileTask;
 import org.melato.common.util.Filenames;
 import org.melato.export.CsvWriter;
 import org.melato.export.TableWriter;
+import org.melato.geometry.gpx.FileGpxSpecifier;
+import org.melato.geometry.gpx.GpxSpecifier;
 import org.melato.geometry.gpx.TrackMatcher;
 import org.melato.geometry.gpx.TrackMatcher.Score;
 import org.melato.gpx.GPX;
@@ -25,7 +27,7 @@ import org.melato.gpx.Waypoint;
  *
  */
 public class RouteMatchingTask extends FileTask {
-  private File trackFile;
+  private GpxSpecifier track;
   private TrackMatcher matcher;
   private List<Score> scores = new ArrayList<Score>();
   protected TableWriter tableWriter;
@@ -33,10 +35,15 @@ public class RouteMatchingTask extends FileTask {
   private int maxCount;
   private float targetDistance = 100;
 
-  /** Specify the track file. */
-  public void setTrackFile(File trackFile) {
-    this.trackFile = trackFile;
+  /** Specify the track as a gpx specifier. */
+  public void setTrack(GpxSpecifier track) {
+    this.track = track;
   }
+  
+  public void setTrackFile(File trackFile) {
+    track = new FileGpxSpecifier(trackFile);
+  }
+  
 
   public void setMinScore(int minScore) {
     this.minScore = minScore;
@@ -63,7 +70,7 @@ public class RouteMatchingTask extends FileTask {
     if ( matcher == null ) {
       GPX gpx;
       try {
-        gpx = readGPX(trackFile);
+        gpx = track.loadGpx();
       } catch (IOException e) {
         throw new RuntimeException( e );
       }
@@ -98,7 +105,7 @@ public class RouteMatchingTask extends FileTask {
     Score[] scores = this.scores.toArray(new Score[0]);
     Arrays.sort(scores);
     try {
-      tableWriter.tableOpen(Filenames.getBasename(trackFile));
+      tableWriter.tableOpen(track.getName());
       tableWriter.tableHeaders(new String[] {
           "route", "nearCount", "meanSeparation", "directionChanges", "dominantDirection"});
       for( int i = 0; i < scores.length; i++ ) {

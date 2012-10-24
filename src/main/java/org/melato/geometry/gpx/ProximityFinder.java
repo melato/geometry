@@ -16,11 +16,8 @@ import org.melato.gpx.util.Path;
  * It can also find the points of S that are (locally) closest to Q,
  * always within D.
  * 
- * It uses a form binary search to find local minimums,
- * It is therefore more efficient than linear search.
- * For a single query, the class is actually less efficient than linear search,
- * because it also computes the sequence path length, but
- * the path length is usually needed anyway.
+ * It uses a form binary search to find local minimums.
+ * It is more efficient than linear search, when used for more than one query.
  */
 public class ProximityFinder {
   private Metric metric = new GlobalDistance();
@@ -285,11 +282,6 @@ public class ProximityFinder {
     return;
   }
 
-  /**
-   * Like findNearbyIndexes, but puts the results into a collection provided by the caller.
-   * @param q  The waypoint to query.
-   * @param nearby An output collection of indexes.
-   */
   /**
    * Find all points of S whose distances from q are within the target distance and are also local minima.
    * @param q  The waypoint to query.
