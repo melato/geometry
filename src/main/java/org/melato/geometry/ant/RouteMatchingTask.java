@@ -84,13 +84,9 @@ public class RouteMatchingTask extends FileTask {
     
   }
   
-  @Override
-  protected void processFile(File file) throws IOException {
+  protected void scoreRoute( GPX gpx, String routeName ) {
     TrackMatcher matcher = getMatcher();
-    String basename = Filenames.getBasename(file); 
-    GPX gpx = readGPX(file);
     for( int i = 0; i < gpx.getRoutes().size(); i++ ) {
-      String routeName = basename;
       if ( i > 0 )
         routeName += "." + i;
       Score score = new Score(routeName);
@@ -98,14 +94,19 @@ public class RouteMatchingTask extends FileTask {
       scores.add(score);
     }
   }
-
+  
   @Override
-  protected void processFiles() throws IOException {
-    super.processFiles();
+  protected void processFile(File file) throws IOException {
+    String basename = Filenames.getBasename(file); 
+    GPX gpx = readGPX(file);
+    scoreRoute(gpx, basename);
+  }
+
+  protected void printScores() throws IOException {
     Score[] scores = this.scores.toArray(new Score[0]);
     Arrays.sort(scores);
+    tableWriter.tableOpen(track.getName());      
     try {
-      tableWriter.tableOpen(track.getName());
       tableWriter.tableHeaders(new String[] {
           "route", "nearCount", "meanSeparation", "directionChanges", "dominantDirection"});
       for( int i = 0; i < scores.length; i++ ) {
@@ -127,5 +128,11 @@ public class RouteMatchingTask extends FileTask {
     } finally {
       tableWriter.tableClose();
     }
-  }  
+  }
+  
+  @Override
+  protected void processFiles() throws IOException {
+    super.processFiles();
+    printScores();
+  }    
 }

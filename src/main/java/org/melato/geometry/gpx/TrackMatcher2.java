@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.melato.gps.Earth;
 import org.melato.gpx.Waypoint;
+import org.melato.gpx.util.Path;
 
 /** Matches a track to a route and returns a list of approaches.
  *  An approach is a pair of (route-index, track-index).
@@ -12,6 +14,7 @@ import org.melato.gpx.Waypoint;
  */
 public class TrackMatcher2 {
   private ProximityFinder proximity;
+  private float startSpeed;
   public static class Approach implements Comparable<Approach> {
     public int routeIndex;
     public int trackIndex;
@@ -28,10 +31,31 @@ public class TrackMatcher2 {
       return trackIndex - a.trackIndex;
     }
   }
+  
+  public void setStartSpeed(float startSpeed) {
+    this.startSpeed = startSpeed * 1000f / 3600f;
+  }
+
   public TrackMatcher2(List<Waypoint> track, float proximityDistance ) {
+    this(new Path(track), proximityDistance);
+  }
+  
+  public TrackMatcher2(Path path, float proximityDistance ) {
     proximity = new ProximityFinder();
-    proximity.setWaypoints(track);
+    proximity.setPath(path);
     proximity.setTargetDistance(proximityDistance);
+  }
+  
+  private int trim(Waypoint[] waypoints, int index, int nextIndex) {
+    for( ; index < nextIndex; index++ ) {
+      Waypoint p1 = waypoints[index];
+      Waypoint p2 = waypoints[index+1];
+      float speed = Earth.distance(p1,  p2) - Waypoint.timeDifference(p1,  p2);
+      if ( speed > startSpeed ) {
+        return index;
+      }
+    }
+    return index;    
   }
   
   public List<Approach> match(List<Waypoint> route) {
@@ -43,6 +67,7 @@ public class TrackMatcher2 {
     for( int i = 0; i < routeSize; i++ ) {
       nearby.clear();
       proximity.findNearby(route.get(i), nearby);
+      //System.out.println( route.get(i).getName() + " nearby.size=" + nearby.size());
       int nearbySize = nearby.size();
       if ( nearbySize == 0 )
         continue;
@@ -79,8 +104,9 @@ public class TrackMatcher2 {
           maxFirstIndex = index;          
         }
       }
+      maxFirstIndex = trim(proximity.getWaypoints(), maxFirstIndex, secondTrackIndex);
       list.get(0).trackIndex = maxFirstIndex;
-    }
+    }    
     return list;
   }
 }
