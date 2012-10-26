@@ -9,6 +9,7 @@ import java.util.List;
 import org.melato.ant.FileTask;
 import org.melato.common.util.Filenames;
 import org.melato.export.CsvWriter;
+import org.melato.export.DelimitedTableWriter;
 import org.melato.export.TableWriter;
 import org.melato.geometry.gpx.FileGpxSpecifier;
 import org.melato.geometry.gpx.GpxSpecifier;
@@ -30,7 +31,7 @@ public class RouteMatchingTask extends FileTask {
   private GpxSpecifier track;
   private TrackMatcher matcher;
   private List<Score> scores = new ArrayList<Score>();
-  protected TableWriter tableWriter;
+  protected TableWriter tableWriter = new DelimitedTableWriter('\t');
   private int minScore = 1;
   private int maxCount;
   private float targetDistance = 100;
