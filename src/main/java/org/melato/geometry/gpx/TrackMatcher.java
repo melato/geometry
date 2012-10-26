@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.melato.gps.Point;
 import org.melato.gpx.Waypoint;
-import org.melato.gpx.util.Path;
 
 
 /**
@@ -30,8 +29,8 @@ public class TrackMatcher {
    * changes from the previously computed direction.
    * Mean-separation is the mean distance between each matching pair between route points and track points.
    * The built-in score comparator sorts by:
-   *   nearCount desc,
    *   dominantDirection,
+   *   nearCount desc,
    *   directionChanges asc,
    *   meanSeparation asc. 
    * */
@@ -47,11 +46,6 @@ public class TrackMatcher {
     }    
     @Override
     public int compareTo(Score t) {
-      // return -1 if this object has better score than t (it is "smaller" in the sorting order).
-      // larger near count sorts first
-      int d = t.nearCount - this.nearCount;
-      if ( d != 0 )
-        return d;
       if ( dominantDirection != t.dominantDirection ) {
         // non-zero direction sorts first
         if ( dominantDirection == 0 )
@@ -61,6 +55,11 @@ public class TrackMatcher {
         // positive direction sorts first
         return t.dominantDirection - dominantDirection;
       }
+      // return -1 if this object has better score than t (it is "smaller" in the sorting order).
+      // larger near count sorts first
+      int d = t.nearCount - this.nearCount;
+      if ( d != 0 )
+        return d;
       // smaller direction changes sorts first
       d = directionChanges - t.directionChanges;
       if ( d != 0 )
