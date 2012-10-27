@@ -5,15 +5,17 @@ import java.util.Arrays;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.melato.geometry.gpx.TrackMatcher.Score;
+import org.melato.geometry.gpx.MultiScoreTrackMatcher.MultiScore;
 
-public class TrackMatcherTest {
+public class MultiScoreTest {
   public @Test void scoreTest() {
-    Score score1 = new Score("a");
-    Score score2 = new Score("b");
+    MultiScore score1 = new MultiScore();
+    score1.setId("a");
+    MultiScore score2 = new MultiScore();
+    score2.setId("b");
     score1.setDominantDirection(1);
     score2.setDominantDirection(-1);
-    Score[] array = new Score[] { score1, score2 };
+    MultiScore[] array = new MultiScore[] { score1, score2 };
     Arrays.sort(array);
     Assert.assertEquals(1, array[0].getDominantDirection());    
   }

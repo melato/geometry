@@ -12,9 +12,10 @@ import org.melato.export.CsvWriter;
 import org.melato.export.DelimitedTableWriter;
 import org.melato.export.TableWriter;
 import org.melato.geometry.gpx.FileGpxSpecifier;
-import org.melato.geometry.gpx.WaypointsSpecifier;
+import org.melato.geometry.gpx.Score;
 import org.melato.geometry.gpx.TrackMatcher;
-import org.melato.geometry.gpx.TrackMatcher.Score;
+import org.melato.geometry.gpx.TrackMatchingAlgorithm;
+import org.melato.geometry.gpx.WaypointsSpecifier;
 import org.melato.gpx.GPX;
 import org.melato.gpx.GPXParser;
 import org.melato.gpx.Waypoint;
@@ -85,8 +86,8 @@ public class TrackMatchingTask extends FileTask {
     for( int i = 0; i < gpx.getRoutes().size(); i++ ) {
       if ( i > 0 )
         routeName += "." + i;
-      Score score = new Score(routeName);
-      matcher.computeScore(gpx.getRoutes().get(i).getWaypoints(), score);
+      Score score = matcher.computeScore(gpx.getRoutes().get(i).getWaypoints());
+      score.setId(routeName);
       scores.add(score);
     }
   }
@@ -103,23 +104,17 @@ public class TrackMatchingTask extends FileTask {
     Arrays.sort(scores);
     tableWriter.tableOpen(track.getName());      
     try {
-      tableWriter.tableHeaders(new String[] {
-          "route", "nearCount", "meanSeparation", "directionChanges", "dominantDirection"});
+      TrackMatchingAlgorithm algorithm = matcher.getAlgorithm();
+      tableWriter.tableHeaders(algorithm.getScoreFieldNames());
       for( int i = 0; i < scores.length; i++ ) {
         Score score = scores[i];
         if ( maxCount > 0 && i >= maxCount ) {
           break;
         }
-        if ( scores[i].getNearCount() < minScore ) {
+        if ( scores[i].getCount() < minScore ) {
           break;
         }
-        tableWriter.tableRow(new Object[] {
-            score.getId(),
-            score.getNearCount(),
-            score.getMeanSeparation(),
-            score.getDirectionChanges(),
-            score.getDominantDirection(),
-        });
+        tableWriter.tableRow(algorithm.getFields(score));
       }
     } finally {
       tableWriter.tableClose();
