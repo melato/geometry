@@ -8,7 +8,7 @@
   <taskdef name="sequential.track" classname="org.melato.geometry.ant.SequentialPathTask"/>
   <taskdef name="distance" classname="org.melato.geometry.ant.DistanceTask"/>
   
+  <taskdef name="match.track" classname="org.melato.geometry.ant.TrackMatchingTask"/>
   <taskdef name="match.route" classname="org.melato.geometry.ant.RouteMatchingTask"/>
-  <taskdef name="analyze.track" classname="org.melato.geometry.ant.TrackRouteMatchingTask"/>
   
 </antlib>

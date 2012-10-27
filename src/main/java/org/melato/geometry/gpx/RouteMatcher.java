@@ -12,7 +12,7 @@ import org.melato.gpx.util.Path;
  *  An approach is a pair of (route-index, track-index).
  *  It sorts first by route-index, then by track-index.
  */
-public class TrackMatcher2 {
+public class RouteMatcher {
   private ProximityFinder proximity;
   private float startSpeed;
   public static class Approach implements Comparable<Approach> {
@@ -36,11 +36,11 @@ public class TrackMatcher2 {
     this.startSpeed = startSpeed * 1000f / 3600f;
   }
 
-  public TrackMatcher2(List<Waypoint> track, float proximityDistance ) {
+  public RouteMatcher(List<Waypoint> track, float proximityDistance ) {
     this(new Path(track), proximityDistance);
   }
   
-  public TrackMatcher2(Path path, float proximityDistance ) {
+  public RouteMatcher(Path path, float proximityDistance ) {
     proximity = new ProximityFinder();
     proximity.setPath(path);
     proximity.setTargetDistance(proximityDistance);

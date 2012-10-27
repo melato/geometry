@@ -1,39 +1,23 @@
 package org.melato.geometry.ant;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import org.melato.ant.FileTask;
-import org.melato.common.util.Filenames;
-import org.melato.export.CsvWriter;
-import org.melato.export.DelimitedTableWriter;
-import org.melato.export.TableWriter;
+import org.melato.app.ant.AppTask;
 import org.melato.geometry.gpx.FileGpxSpecifier;
+import org.melato.geometry.gpx.RouteMatcher;
+import org.melato.geometry.gpx.RouteMatcher.Approach;
 import org.melato.geometry.gpx.WaypointsSpecifier;
-import org.melato.geometry.gpx.TrackMatcher;
-import org.melato.geometry.gpx.TrackMatcher.Score;
-import org.melato.gpx.GPX;
-import org.melato.gpx.GPXParser;
 import org.melato.gpx.Waypoint;
+import org.melato.gpx.util.Path;
 
-/** Ant task that compares a track against a list of routes and creates
- *  a match score for each route.
- *  In the end, it prints the routes and the scores, sorted by best score.
- *  The track file is specified by a property.
- *  The routes are specified as files from filesets. 
+/** Ant task that matches a track against a route and outputs approaches.
  * @author Alex Athanasopoulos
  *
  */
-public class RouteMatchingTask extends FileTask {
-  private WaypointsSpecifier track;
-  private TrackMatcher matcher;
-  private List<Score> scores = new ArrayList<Score>();
-  protected TableWriter tableWriter = new DelimitedTableWriter('\t');
-  private int minScore = 1;
-  private int maxCount;
+public class RouteMatchingTask extends AppTask {
+  private WaypointsSpecifier  track;
+  private WaypointsSpecifier  route;
   private float targetDistance = 100;
 
   /** Specify the track as a gpx specifier. */
@@ -41,93 +25,51 @@ public class RouteMatchingTask extends FileTask {
     this.track = track;
   }
   
-  public void setTrackFile(File trackFile) {
-    track = new FileGpxSpecifier(trackFile);
-  }
-  
-
-  public void setMinScore(int minScore) {
-    this.minScore = minScore;
+  public void setRoute(WaypointsSpecifier route) {
+    this.route = route;
   }
 
-  public void setMaxCount(int maxCount) {
-    this.maxCount = maxCount;
+  public void setTrackFile(File file) {
+    this.track = new FileGpxSpecifier(file);
   }
   
-  public void setOutputDir(File outputDir) {
-    tableWriter = new CsvWriter(outputDir);
-  }  
+  public void setRouteFile(File file) {
+    this.route = new FileGpxSpecifier(file);
+  }
+  
   
   public void setTargetDistance(float targetDistance) {
     this.targetDistance = targetDistance;
   }
 
-  GPX readGPX(File file) throws IOException {
-    GPXParser parser = new GPXParser();
-    return parser.parse(file);
-  }
-  
-  TrackMatcher getMatcher() {
-    if ( matcher == null ) {
-      try {
-        List<Waypoint> list = track.loadWaypoints();
-        matcher = new TrackMatcher(list, targetDistance);
-      } catch (IOException e) {
-        throw new RuntimeException( e );
-      }
-    }
-    return matcher;    
-  }
-  
-  protected void scoreRoute( GPX gpx, String routeName ) {
-    TrackMatcher matcher = getMatcher();
-    for( int i = 0; i < gpx.getRoutes().size(); i++ ) {
-      if ( i > 0 )
-        routeName += "." + i;
-      Score score = new Score(routeName);
-      matcher.computeScore(gpx.getRoutes().get(i).getWaypoints(), score);
-      scores.add(score);
+  private void printApproaches(List<Approach> approaches,
+      List<Waypoint> trackWaypoints,
+      List<Waypoint> routeWaypoints) {
+    System.out.println( "approaches: " + approaches.size());
+    int size = approaches.size();
+    if ( size == 0 )
+      return;
+    Path path = new Path(trackWaypoints);
+    long time0 = trackWaypoints.get(approaches.get(0).trackIndex).getTime(); 
+    float distance0 = path.getLength(approaches.get(0).trackIndex);
+    for( int i = 0; i < size; i++ ) {
+      Approach a = approaches.get(i);
+      int trackIndex = approaches.get(i).trackIndex;
+      Waypoint p = trackWaypoints.get(trackIndex);
+      int time = (int) ((p.getTime() - time0)/1000L);
+      System.out.println( a.routeIndex + "," + a.trackIndex + " " + routeWaypoints.get(a.routeIndex).getName() +
+          " " + Math.round((path.getLength(trackIndex) - distance0)) +
+          "/" + time
+          );
     }
   }
-  
   @Override
-  protected void processFile(File file) throws IOException {
-    String basename = Filenames.getBasename(file); 
-    GPX gpx = readGPX(file);
-    scoreRoute(gpx, basename);
+  public void execute() throws Exception {
+    List<Waypoint> trackWaypoints = this.track.loadWaypoints();
+    System.out.println( "route=" + this.route.getName() + " track=" + this.track.getName());
+    List<Waypoint> routeWaypoints = this.route.loadWaypoints();
+    RouteMatcher matcher = new RouteMatcher(trackWaypoints, targetDistance);
+    List<Approach> approaches = matcher.match( routeWaypoints );
+    printApproaches(approaches, trackWaypoints, routeWaypoints);
   }
-
-  protected void printScores() throws IOException {
-    Score[] scores = this.scores.toArray(new Score[0]);
-    Arrays.sort(scores);
-    tableWriter.tableOpen(track.getName());      
-    try {
-      tableWriter.tableHeaders(new String[] {
-          "route", "nearCount", "meanSeparation", "directionChanges", "dominantDirection"});
-      for( int i = 0; i < scores.length; i++ ) {
-        Score score = scores[i];
-        if ( maxCount > 0 && i >= maxCount ) {
-          break;
-        }
-        if ( scores[i].getNearCount() < minScore ) {
-          break;
-        }
-        tableWriter.tableRow(new Object[] {
-            score.getId(),
-            score.getNearCount(),
-            score.getMeanSeparation(),
-            score.getDirectionChanges(),
-            score.getDominantDirection(),
-        });
-      }
-    } finally {
-      tableWriter.tableClose();
-    }
-  }
-  
-  @Override
-  protected void processFiles() throws IOException {
-    super.processFiles();
-    printScores();
-  }    
 }
