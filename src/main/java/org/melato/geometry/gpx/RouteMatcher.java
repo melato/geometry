@@ -187,6 +187,10 @@ public class RouteMatcher {
       }
     }
     filter(list);
+    if ( list.size() > 1 ) {
+      int firstIndex = trim(proximity.getWaypoints(), list.get(0).trackIndex, list.get(1).trackIndex);      
+      list.get(0).trackIndex = firstIndex;
+    }
     return list;
   }
 }
