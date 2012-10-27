@@ -50,9 +50,9 @@ public class RouteMatcher {
     this(new Path(track), proximityDistance);
   }
   
-  public RouteMatcher(Path path, float proximityDistance ) {
+  public RouteMatcher(Path track, float proximityDistance ) {
     proximity = new ProximityFinder();
-    proximity.setPath(path);
+    proximity.setPath(track);
     proximity.setTargetDistance(proximityDistance);
   }
   
@@ -71,7 +71,7 @@ public class RouteMatcher {
   /** remove approaches so that the remaining approaches are in non-decreasing order of route indexes.
    * approaches are removed by setting their place to null in the array.
    * */ 
-  public void removeOutOfOrder(Approach[] approaches, int start, int end) {
+  private static void removeOutOfOrder(Approach[] approaches, int start, int end) {
     // find the longest sequence of non-decrementing route indexes
     int bestStart = 0;
     int bestEnd = 0;
@@ -133,7 +133,7 @@ public class RouteMatcher {
     removeOutOfOrder( approaches, bestEnd, end );
   }
 
-  public void removeDuplicates(Approach[] approaches) {
+  private static void removeDuplicates(Approach[] approaches) {
     Approach last = null;
     // keep the last approach that has the first route index.
     for( int i = 0; i < approaches.length; i++ ) {
@@ -158,6 +158,20 @@ public class RouteMatcher {
       }      
     }
   }
+
+  public static void filter(List<Approach> list ) {
+    Approach[] approaches = list.toArray(new Approach[0]);
+    Arrays.sort(approaches);
+    removeOutOfOrder( approaches, 0, approaches.length );
+    removeDuplicates(approaches);
+    list.clear();
+    for( int i = 0; i < approaches.length; i++ ) {
+      Approach a = approaches[i];
+      if ( a != null ) {
+        list.add(a);
+      }
+    }
+  }
   
   public List<Approach> match(List<Waypoint> route) {
     List<Approach> list = new ArrayList<Approach>();
@@ -172,17 +186,7 @@ public class RouteMatcher {
         list.add( new Approach(i, nearby.get(j)));
       }
     }
-    Approach[] approaches = list.toArray(new Approach[0]);
-    Arrays.sort(approaches);
-    removeOutOfOrder( approaches, 0, approaches.length );
-    removeDuplicates(approaches);
-    list.clear();
-    for( int i = 0; i < approaches.length; i++ ) {
-      Approach a = approaches[i];
-      if ( a != null ) {
-        list.add(a);
-      }
-    }
+    filter(list);
     return list;
   }
 }
