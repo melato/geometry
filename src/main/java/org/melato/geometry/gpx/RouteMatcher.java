@@ -28,6 +28,7 @@ public class RouteMatcher {
   public static class Approach implements Comparable<Approach> {
     public int routeIndex;
     public int trackIndex;
+    boolean visited;
     public Approach(int routeIndex, int trackIndex) {
       super();
       this.routeIndex = routeIndex;
@@ -68,102 +69,177 @@ public class RouteMatcher {
     return index;    
   }
   
+  static class Sequence {
+    int start;
+    int last;
+    int length;
+    
+    
+    /** for debugging */
+    @Override
+    public String toString() {
+      return "[start=" + start + " last=" + last + " lenght=" + length + "]";
+    }
+    void clearInside(Approach[] approaches) {
+      Approach a = approaches[start];
+      int routeIndex = a.routeIndex;
+      for( int i = start; i <= last; i++ ) {
+        Approach b = approaches[i];
+        if ( b != null ) {
+          if ( b.routeIndex == routeIndex + 1 || b.routeIndex == routeIndex ) {          
+            routeIndex = b.routeIndex;
+          } else {
+            approaches[i] = null;
+          }
+        }
+      }
+    }
+    void clearLeft(Approach[] approaches, int start) {
+      int routeIndex = approaches[this.start].routeIndex;
+      for( int i = start; i < this.start; i++ ) {
+        Approach a = approaches[i];
+        if ( a != null && a.routeIndex > routeIndex ) {
+          approaches[i] = null;
+        }
+      }
+    }
+    void clearRight(Approach[] approaches, int end) {
+      int routeIndex = approaches[this.start].routeIndex + length;
+      for( int i = this.last + 1; i < end; i++ ) {
+        Approach a = approaches[i];
+        if ( a != null && a.routeIndex < routeIndex ) {
+          approaches[i] = null;
+        }
+      }
+    }
+  }
+  
+  private static void findSequence(Approach[] approaches, int start, int end, Sequence sequence) {
+    Approach a = approaches[start];
+    sequence.start = start;
+    sequence.last = start;
+    sequence.length = 1;
+    int routeIndex = a.routeIndex;
+    int j = start + 1;
+    for( ; j < end ;j++ ) {
+      Approach b = approaches[j];
+      if ( b != null && ! b.visited) {
+        if ( b.routeIndex == routeIndex + 1 ) {
+          routeIndex = b.routeIndex;
+          sequence.length++;
+        } else if ( b.routeIndex != routeIndex ) {
+          continue;
+        }
+        sequence.last = j;
+        b.visited = true;
+      }
+    }
+    //System.out.println( "findSequence start=" + start + " end=" + end + " sequence=" + sequence);
+  }
+
   /** remove approaches so that the remaining approaches are in non-decreasing order of route indexes.
    * approaches are removed by setting their place to null in the array.
    * */ 
   private static void removeOutOfOrder(Approach[] approaches, int start, int end) {
-    // find the longest sequence of non-decrementing route indexes
-    int bestStart = 0;
-    int bestEnd = 0;
-    int bestLength = 0;
-    for( int i = start; i < end; ) {
+    if ( end <= start )
+      return;
+    for( int i = start; i < end; i++ ) {
       Approach a = approaches[i];
       if ( a != null ) {
-        int length = 1;
-        int j = i + 1;
-        for( ; j < end ;j++ ) {
-          Approach b = approaches[j];
-          if ( b != null ) {
-            if ( a.routeIndex <= b.routeIndex ) {
-              length++;
-            } else {
-              break;
-            }
-          }
-        }
-        if ( length > bestLength ) {
-          bestStart = i;
-          bestLength = length;
-          bestEnd = j;
-        }
-        i = j;
-      } else {
-        i++;
+        a.visited = false;
       }
     }
-    if ( bestLength == 0 ) {
+    Sequence bestSequence = null;
+    Sequence sequence = new Sequence();
+    
+    // find the longest sub-sequence of sequential or equal route indexes
+    for( int i = start; i < end; i++ ) {
+      Approach a = approaches[i];
+      if ( a != null ) {
+        //System.out.println( "i=" + i + " visited=" + a.visited);
+        if ( a.visited )
+          continue;
+        findSequence(approaches, i, end, sequence);
+        if ( bestSequence == null || sequence.length > bestSequence.length ) {
+          bestSequence = sequence;
+          sequence = new Sequence();
+        }
+      }
+    }
+    if ( bestSequence == null ) {
       // there is nothing
       return;
     }
-    int minRouteIndex = approaches[bestStart].routeIndex;
-    int maxRouteIndex = minRouteIndex;
-    for( int i = bestEnd - 1; i >= bestStart; i-- ) {
-      Approach a = approaches[i];
-      if ( a != null ) {
-        maxRouteIndex = a.routeIndex;
-        break;
-      }
-    }
-    // remove approaches from the left that don't fit the best sequence
-    for( int i = start; i < bestStart; i++ ) {
-      Approach a = approaches[i];
-      if ( a != null && a.routeIndex > minRouteIndex ) {
-        approaches[i] = null;
-      }
-    }
-    // remove approaches from the right that don't fit the best sequence
-    for( int i = bestEnd; i < end; i++ ) {
-      Approach a = approaches[i];
-      if ( a != null && a.routeIndex < maxRouteIndex ) {
-        approaches[i] = null;
-      }
-    }
+    bestSequence.clearInside(approaches);
+    bestSequence.clearLeft(approaches, start);
+    bestSequence.clearRight(approaches, end);
+    
+    //System.out.println( "a: " + toString( approaches, 0, approaches.length ));
     // do the same on each side
-    removeOutOfOrder( approaches, start, bestStart );
-    removeOutOfOrder( approaches, bestEnd, end );
+    removeOutOfOrder( approaches, start, bestSequence.start);
+    removeOutOfOrder( approaches, bestSequence.last + 1, end );
+    //System.out.println( "b: " + toString( approaches, 0, approaches.length ));
   }
 
   private static void removeDuplicates(Approach[] approaches) {
-    Approach last = null;
     // keep the last approach that has the first route index.
-    for( int i = 0; i < approaches.length; i++ ) {
+    int routeIndex = -1;
+    int lastIndex = -1;
+    int i = 0;
+    for( ; i < approaches.length; i++ ) {
       Approach a = approaches[i];
       if ( a != null ) {
-        if ( last != null && a.routeIndex != last.routeIndex ) {
+        if ( routeIndex == -1 ) {
+          routeIndex = a.routeIndex;
+          lastIndex = i;
+        } else if ( routeIndex == a.routeIndex ) {
+            approaches[lastIndex] = null;
+        } else {
+          routeIndex = a.routeIndex;
+          i++;
           break;
         }
-        last = a;
       }
     }
     
     // for subsequent route indexes, keep the first approach from approaches with equal route index.
-    for( int i = 0; i < approaches.length; i++ ) {
+    for( ; i < approaches.length; i++ ) {
       Approach a = approaches[i];
       if ( a != null ) {
-        if ( last.routeIndex == a.routeIndex ) {
+        if ( routeIndex == a.routeIndex ) {
           approaches[i] = null;
         } else {
-          last = a;
+          routeIndex = a.routeIndex;
         }
       }      
     }
   }
 
+  private static String toString( Approach[] approaches, int start, int end ) {
+    StringBuilder buf = new StringBuilder();
+    buf.append( "[");
+    int count = 0;
+    for( int i = start; i < end; i++ ) {
+      Approach a = approaches[i];
+      if ( a != null ) {
+        if ( count > 0 ) {
+          buf.append( " " );
+        }
+        count++;
+        buf.append( String.valueOf(a.routeIndex) );
+      }
+    }
+    buf.append("]");
+    return buf.toString();
+  }
+  
   public static void filter(List<Approach> list ) {
     Approach[] approaches = list.toArray(new Approach[0]);
     Arrays.sort(approaches);
     removeOutOfOrder( approaches, 0, approaches.length );
+    //System.out.println( "c: " + toString( approaches, 0, approaches.length ));
     removeDuplicates(approaches);
+    //System.out.println( "d: " + toString( approaches, 0, approaches.length ));
     list.clear();
     for( int i = 0; i < approaches.length; i++ ) {
       Approach a = approaches[i];
