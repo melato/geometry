@@ -12,7 +12,7 @@ import org.melato.export.CsvWriter;
 import org.melato.export.DelimitedTableWriter;
 import org.melato.export.TableWriter;
 import org.melato.geometry.gpx.FileGpxSpecifier;
-import org.melato.geometry.gpx.GpxSpecifier;
+import org.melato.geometry.gpx.WaypointsSpecifier;
 import org.melato.geometry.gpx.TrackMatcher;
 import org.melato.geometry.gpx.TrackMatcher.Score;
 import org.melato.gpx.GPX;
@@ -28,7 +28,7 @@ import org.melato.gpx.Waypoint;
  *
  */
 public class RouteMatchingTask extends FileTask {
-  private GpxSpecifier track;
+  private WaypointsSpecifier track;
   private TrackMatcher matcher;
   private List<Score> scores = new ArrayList<Score>();
   protected TableWriter tableWriter = new DelimitedTableWriter('\t');
@@ -37,7 +37,7 @@ public class RouteMatchingTask extends FileTask {
   private float targetDistance = 100;
 
   /** Specify the track as a gpx specifier. */
-  public void setTrack(GpxSpecifier track) {
+  public void setTrack(WaypointsSpecifier track) {
     this.track = track;
   }
   
@@ -69,20 +69,14 @@ public class RouteMatchingTask extends FileTask {
   
   TrackMatcher getMatcher() {
     if ( matcher == null ) {
-      GPX gpx;
       try {
-        gpx = track.loadGpx();
+        List<Waypoint> list = track.loadWaypoints();
+        matcher = new TrackMatcher(list, targetDistance);
       } catch (IOException e) {
         throw new RuntimeException( e );
       }
-      List<Waypoint> list = new ArrayList<Waypoint>();
-      for( Waypoint p: GPXIterators.trackWaypoints(gpx.getTracks())) {
-        list.add(p);
-      }
-      matcher = new TrackMatcher(list, targetDistance);
     }
-    return matcher;
-    
+    return matcher;    
   }
   
   protected void scoreRoute( GPX gpx, String routeName ) {

@@ -1,15 +1,13 @@
 package org.melato.geometry.ant;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.melato.app.ant.AppTask;
 import org.melato.geometry.gpx.FileGpxSpecifier;
-import org.melato.geometry.gpx.GpxSpecifier;
 import org.melato.geometry.gpx.TrackMatcher2;
 import org.melato.geometry.gpx.TrackMatcher2.Approach;
-import org.melato.gpx.GPX;
+import org.melato.geometry.gpx.WaypointsSpecifier;
 import org.melato.gpx.Waypoint;
 import org.melato.gpx.util.Path;
 
@@ -18,16 +16,16 @@ import org.melato.gpx.util.Path;
  *
  */
 public class TrackRouteMatchingTask extends AppTask {
-  private GpxSpecifier  track;
-  private GpxSpecifier  route;
+  private WaypointsSpecifier  track;
+  private WaypointsSpecifier  route;
   private float targetDistance = 100;
 
   /** Specify the track as a gpx specifier. */
-  public void setTrack(GpxSpecifier track) {
+  public void setTrack(WaypointsSpecifier track) {
     this.track = track;
   }
   
-  public void setRoute(GpxSpecifier route) {
+  public void setRoute(WaypointsSpecifier route) {
     this.route = route;
   }
 
@@ -47,6 +45,7 @@ public class TrackRouteMatchingTask extends AppTask {
   private void printApproaches(List<Approach> approaches,
       List<Waypoint> trackWaypoints,
       List<Waypoint> routeWaypoints) {
+    System.out.println( "approaches: " + approaches.size());
     int size = approaches.size();
     if ( size == 0 )
       return;
@@ -66,13 +65,9 @@ public class TrackRouteMatchingTask extends AppTask {
   }
   @Override
   public void execute() throws Exception {
-    GPX trackGpx = this.track.loadGpx();
-    List<Waypoint> trackWaypoints = new ArrayList<Waypoint>();
-    for( Waypoint p: GPXIterators.trackWaypoints(trackGpx.getTracks())) {
-      trackWaypoints.add(p);
-    }
-    GPX routeGpx = this.route.loadGpx();
-    List<Waypoint> routeWaypoints = routeGpx.getRoutes().get(0).getWaypoints();
+    List<Waypoint> trackWaypoints = this.track.loadWaypoints();
+    System.out.println( "route=" + this.route.getName() + " track=" + this.track.getName());
+    List<Waypoint> routeWaypoints = this.route.loadWaypoints();
     TrackMatcher2 matcher = new TrackMatcher2(trackWaypoints, targetDistance);
     List<Approach> approaches = matcher.match( routeWaypoints );
     printApproaches(approaches, trackWaypoints, routeWaypoints);
