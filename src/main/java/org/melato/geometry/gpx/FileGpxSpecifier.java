@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.melato.common.util.Filenames;
-import org.melato.geometry.ant.GPXIterators;
 import org.melato.gpx.GPX;
 import org.melato.gpx.GPXParser;
 import org.melato.gpx.Waypoint;
