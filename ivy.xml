@@ -8,8 +8,6 @@
 		<artifact name="${ant.project.name}-src" type="source" ext="tar.gz" conf="src"/>
 	</publications>
     <dependencies>
-        <dependency org="org.melato" name="org.melato.ant" rev="latest.integration"/>
-        <dependency org="org.melato" name="org.melato.common" rev="latest.integration"/>
         <dependency org="org.melato" name="org.melato.util" rev="latest.integration"/>
         <dependency org="org.melato" name="org.melato.gpx" rev="latest.integration"/>
         <dependency org="org.junit" name="junit" rev="4.4" conf="test->default"/>
