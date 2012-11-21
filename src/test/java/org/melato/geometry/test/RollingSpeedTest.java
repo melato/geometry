@@ -23,14 +23,14 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.melato.geometry.gpx.RollingSpeedManager;
 import org.melato.geometry.gpx.RollingSpeedManager.RollingSpeed;
-import org.melato.gps.Point;
+import org.melato.gps.PointTime;
 
 public class RollingSpeedTest {
   public @Test void constant() {
     RollingSpeedManager speedManager = new RollingSpeedManager(new TestMetric());
     RollingSpeed speed5 = speedManager.getRollingSpeed(5);
     for( int i = 0; i < 20; i++ ) {
-      Point p = new Point( i, 0);
+      PointTime p = new PointTime( i, 0);
       p.setTime(i*1000L);
       speedManager.addPoint(p);
     }
@@ -40,12 +40,12 @@ public class RollingSpeedTest {
     RollingSpeedManager speedManager = new RollingSpeedManager(new TestMetric());
     RollingSpeed speed = speedManager.getRollingSpeed(5);
     for( int i = 0; i < 4; i++ ) {
-      Point p = new Point( i, 0);
+      PointTime p = new PointTime( i, 0);
       p.setTime(i*1000L);
       speedManager.addPoint(p);
     }
     for( int i = 4; i < 6; i++ ) {
-      Point p = new Point( 4, 0);
+      PointTime p = new PointTime( 4, 0);
       p.setTime(i*1000L);
       speedManager.addPoint(p);
     }

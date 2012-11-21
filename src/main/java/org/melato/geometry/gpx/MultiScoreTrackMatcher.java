@@ -20,7 +20,7 @@ package org.melato.geometry.gpx;
 
 import java.util.List;
 
-import org.melato.gps.Point;
+import org.melato.gps.PointTime;
 import org.melato.gpx.Waypoint;
 
 
@@ -156,7 +156,7 @@ public class MultiScoreTrackMatcher implements TrackMatchingAlgorithm {
     int lastDirection = 0;
     int lastTrackIndex = -1;
     for( int i = 0; i < size; i++ ) {
-      Point p = route.get(i);
+      PointTime p = route.get(i);
       int trackIndex = proximity.findClosestNearby(p);
       if ( trackIndex >= 0 ) {
         nearCount++;
