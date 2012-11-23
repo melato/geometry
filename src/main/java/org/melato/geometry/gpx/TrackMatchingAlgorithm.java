@@ -18,9 +18,7 @@
  */
 package org.melato.geometry.gpx;
 
-import java.util.List;
-
-import org.melato.gpx.Waypoint;
+import org.melato.gps.PointTime;
 
 /**
  * Matches a track against a route and creates a matching score that can be used to select
@@ -30,8 +28,8 @@ import org.melato.gpx.Waypoint;
  */
 public interface TrackMatchingAlgorithm {
   void setProximityDistance(float targetDistance);
-  void setTrack(List<Waypoint> track);
-  Score computeScore(List<Waypoint> route);
+  void setTrack(PointTime[] track);
+  Score computeScore(PointTime[] route);
   String[] getScoreFieldNames();
   Object[] getFields(Score score);
 }

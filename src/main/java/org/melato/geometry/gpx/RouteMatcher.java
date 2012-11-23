@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.melato.gps.Earth;
-import org.melato.gps.Point2D;
 import org.melato.gps.PointTime;
 import org.melato.gpx.Waypoint;
 import org.melato.gpx.util.Path;
@@ -68,7 +67,7 @@ public class RouteMatcher {
     this.startSpeed = startSpeed * 1000f / 3600f;
   }
 
-  public RouteMatcher(List<Waypoint> track, float proximityDistance ) {
+  public RouteMatcher(PointTime[] track, float proximityDistance ) {
     this(new Path(track), proximityDistance);
   }
   
@@ -271,13 +270,13 @@ public class RouteMatcher {
     }
   }
   
-  public List<Approach> match(List<Waypoint> route) {
+  public List<Approach> match(PointTime[] route) {
     List<Approach> list = new ArrayList<Approach>();
     List<Integer> nearby = new ArrayList<Integer>();
-    int routeSize = route.size();
+    int routeSize = route.length;
     for( int i = 0; i < routeSize; i++ ) {
       nearby.clear();
-      proximity.findNearby(route.get(i), nearby);
+      proximity.findNearby(route[i], nearby);
       //System.out.println( route.get(i).getName() + " nearby.size=" + nearby.size());
       int nearbySize = nearby.size();
       for( int j = 0; j < nearbySize; j++ ) {

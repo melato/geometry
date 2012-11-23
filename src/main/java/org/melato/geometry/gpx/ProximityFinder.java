@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.melato.gps.Point2D;
+import org.melato.gps.PointTime;
 import org.melato.gpx.GlobalDistance;
 import org.melato.gpx.Metric;
 import org.melato.gpx.Waypoint;
@@ -58,6 +59,10 @@ public class ProximityFinder {
   }
   
   public void setWaypoints(List<Waypoint> waypoints) {
+    setPath(new Path(waypoints));
+  }
+
+  public void setWaypoints(PointTime[] waypoints) {
     setPath(new Path(waypoints));
   }
 
