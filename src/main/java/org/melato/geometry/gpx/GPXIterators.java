@@ -21,6 +21,7 @@ package org.melato.geometry.gpx;
 import java.util.Iterator;
 import java.util.List;
 
+import org.melato.gps.PointTime;
 import org.melato.gpx.GPX;
 import org.melato.gpx.Route;
 import org.melato.gpx.Sequence;
@@ -33,21 +34,16 @@ public class GPXIterators {
     return new EmptyIterator<T>();
   }
   
-  public static Iterable<Waypoint> trackWaypoints(List<Track> tracks) {
+  public static Iterable<PointTime> trackWaypoints(List<Track> tracks) {
     return new TrackWaypointIterable(tracks);
   }
 
-  public static Iterable<Waypoint> trackWaypoints(GPX gpx) {
+  public static Iterable<PointTime> trackWaypoints(GPX gpx) {
     return new TrackWaypointIterable(gpx.getTracks());
   }
 
   public static Iterable<Waypoint> routeWaypoints(GPX gpx) {
     return new RouteWaypointIterable(gpx.getRoutes());
-  }
-
-  @SuppressWarnings("unchecked")
-  public static Iterable<Waypoint> allWaypoints(GPX gpx) {
-    return Iterators.concatenate( gpx.getWaypoints(), routeWaypoints(gpx), trackWaypoints(gpx));
   }
 
   private static class EmptyIterator<T> implements Iterator<T> {
@@ -66,7 +62,7 @@ public class GPXIterators {
       throw new UnsupportedOperationException();
     }    
   }
-  public static class TrackWaypointIterable implements Iterable<Waypoint> {
+  public static class TrackWaypointIterable implements Iterable<PointTime> {
     private List<Track> tracks;
 
     public TrackWaypointIterable(List<Track> tracks) {
@@ -75,12 +71,12 @@ public class GPXIterators {
     }
 
     @Override
-    public Iterator<Waypoint> iterator() {
+    public Iterator<PointTime> iterator() {
       return new TrackWaypointIterator(tracks);
     }
     
   }
-  private static class TrackWaypointIterator implements Iterator<Waypoint> {
+  private static class TrackWaypointIterator implements Iterator<PointTime> {
     private Iterator<Track> tracks;
     private Iterator<Sequence> segments = emptyIterator();
     private Iterator<Waypoint> waypoints = emptyIterator();
@@ -106,7 +102,7 @@ public class GPXIterators {
       }
     }
     @Override
-    public Waypoint next() {
+    public PointTime next() {
       return waypoints.next();
     }
     @Override
