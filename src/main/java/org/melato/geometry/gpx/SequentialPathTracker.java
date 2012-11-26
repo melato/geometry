@@ -209,7 +209,7 @@ public class SequentialPathTracker implements TrackingAlgorithm {
     if ( location == null ) {
       setInitialLocation(point);
     } else {
-      Log.info( "seq.tracker inPath=" + inPath + " currentIndex=" + currentIndex);
+      //Log.info( "seq.tracker inPath=" + inPath + " currentIndex=" + currentIndex);
       if ( inPath ) {
         float d = metric.distance(point, currentWaypoint);
         if ( d <= currentDistance ) {
@@ -217,7 +217,7 @@ public class SequentialPathTracker implements TrackingAlgorithm {
           currentDistance = d;
           location = point;
           pathPosition = interpolatePosition(path, point, currentIndex - 1, currentIndex);
-          Log.info( "approaching " + currentWaypoint );
+          //Log.info( "approaching " + currentWaypoint );
         } else {
           // we seem to be moving away from current waypoint
           // check if we're approaching one of the following waypoints
@@ -229,11 +229,11 @@ public class SequentialPathTracker implements TrackingAlgorithm {
               // ok, we're moving closer to the nextWaypoint
               pathPosition = interpolatePosition(path, point, i, i + 1);
               setCurrentPosition(point, i+1);
-              Log.info( "moved to: " + currentWaypoint );
+              //Log.info( "moved to: " + currentWaypoint );
               break;
             }
           }
-          Log.info( "left path");
+          //Log.info( "left path");
           // we are not approaching any path waypoint.  Assume we are no longer following it.
           setInitialLocation(point);
         }
