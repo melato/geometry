@@ -27,6 +27,8 @@ import org.melato.gpx.Route;
 import org.melato.gpx.Sequence;
 import org.melato.gpx.Track;
 import org.melato.gpx.Waypoint;
+import org.melato.util.DelegateIterable;
+import org.melato.util.DelegateList;
 import org.melato.util.Iterators;
 
 public class GPXIterators {
@@ -46,6 +48,13 @@ public class GPXIterators {
     return new RouteWaypointIterable(gpx.getRoutes());
   }
 
+  @SuppressWarnings("unchecked")
+  public static Iterable<PointTime> allWaypoints(GPX gpx) {
+    return Iterators.concatenate( new DelegateList<Waypoint,PointTime>(gpx.getWaypoints()),
+        new DelegateIterable<PointTime>(routeWaypoints(gpx)),
+        trackWaypoints(gpx));
+  }
+  
   private static class EmptyIterator<T> implements Iterator<T> {
     @Override
     public boolean hasNext() {
