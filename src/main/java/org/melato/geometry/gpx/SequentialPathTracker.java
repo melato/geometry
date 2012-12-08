@@ -131,6 +131,7 @@ public class SequentialPathTracker implements TrackingAlgorithm {
     currentIndex = index;
     currentWaypoint = path.getWaypoints()[currentIndex];      
     currentDistance = metric.distance(location, currentWaypoint);
+    //Log.info( "currentIndex=" + currentIndex + " waypoint=" + currentWaypoint + " distance=" + currentDistance);
   }
   
   
@@ -212,6 +213,7 @@ public class SequentialPathTracker implements TrackingAlgorithm {
       //Log.info( "seq.tracker inPath=" + inPath + " currentIndex=" + currentIndex);
       if ( inPath ) {
         float d = metric.distance(point, currentWaypoint);
+        //Log.info( "distance = " + d + " currentDistance=" + currentDistance );
         if ( d <= currentDistance ) {
           // we seem to be moving towards the current waypoint
           currentDistance = d;
@@ -229,8 +231,8 @@ public class SequentialPathTracker implements TrackingAlgorithm {
               // ok, we're moving closer to the nextWaypoint
               pathPosition = interpolatePosition(path, point, i, i + 1);
               setCurrentPosition(point, i+1);
-              //Log.info( "moved to: " + currentWaypoint );
-              break;
+              //Log.info( "moved to: " + (i+1) + " " + currentWaypoint );
+              return;
             }
           }
           //Log.info( "left path");
