@@ -18,15 +18,9 @@
  */
 package org.melato.geometry.gpx;
 
-import java.util.List;
-
 import org.melato.gps.PointTime;
-import org.melato.gpx.GlobalDistance;
-import org.melato.gpx.LocalDistance;
 import org.melato.gpx.Metric;
-import org.melato.gpx.Waypoint;
 import org.melato.gpx.util.Path;
-import org.melato.log.Log;
 
 /**
  * PathTracker algorithm that assumes the incoming positions follow the set path.
@@ -39,9 +33,9 @@ import org.melato.log.Log;
  */
 public class SequentialPathTracker implements TrackingAlgorithm {
   private Path path;
-  private Metric metric = new GlobalDistance();
+  private Metric metric;
   
-
+  
   /** The last location */
   private PointTime location;
   
@@ -81,21 +75,11 @@ public class SequentialPathTracker implements TrackingAlgorithm {
     setPath(new Path());
   }
   
-  public SequentialPathTracker(List<Waypoint> waypoints) {
-    setPath(new Path(waypoints));
-  }
-
-  
   @Override
   public void setPath(Path path) {
     clearLocation();
     this.path = path;
-    if ( path.size() > 0 && path.getLength() < 200000) {
-      // for path lengths < 200 Km, use local distance
-      metric = new LocalDistance(path.getWaypoints()[0]);
-    } else {
-      metric = new GlobalDistance();
-    } 
+    this.metric = path.getMetric();
   }
 
   @Override

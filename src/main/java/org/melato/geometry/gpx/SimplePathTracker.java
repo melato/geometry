@@ -20,8 +20,8 @@ package org.melato.geometry.gpx;
 
 import java.util.List;
 
-import org.melato.gps.Earth;
 import org.melato.gps.PointTime;
+import org.melato.gpx.Metric;
 import org.melato.gpx.Waypoint;
 import org.melato.gpx.util.Path;
 
@@ -40,6 +40,7 @@ public class SimplePathTracker implements TrackingAlgorithm {
   private PointTime location;
   private int   nearestIndex;
   private float pathPosition;
+  private Metric metric;
     
   @Override
   public void clearLocation() {
@@ -62,6 +63,7 @@ public class SimplePathTracker implements TrackingAlgorithm {
   public void setPath(Path path) {
     this.path = path;
     pathSize = path.getWaypoints().length;
+    metric = path.getMetric();
   }
 
   @Override
@@ -92,8 +94,8 @@ public class SimplePathTracker implements TrackingAlgorithm {
       neighbors[1] = closest;
     } else {
       // find the closest neighbor to the closest point.
-      float d1 = Earth.distance(p,  path.getWaypoints()[closest-1]);
-      float d2 = Earth.distance(p,  path.getWaypoints()[closest+1]);
+      float d1 = metric.distance(p,  path.getWaypoints()[closest-1]);
+      float d2 = metric.distance(p,  path.getWaypoints()[closest+1]);
       if ( d1 <= d2 ) {
         neighbors[0] = closest - 1;
         neighbors[1] = closest;
@@ -123,8 +125,8 @@ public class SimplePathTracker implements TrackingAlgorithm {
     float p1 = path.getLength(neighbor[0]);
     float p2 = path.getLength(neighbor[1]);
     float s = p2 - p1;
-    float d1 = Earth.distance(p, s1);
-    float d2 = Earth.distance(p, s2);
+    float d1 = metric.distance(p, s1);
+    float d2 = metric.distance(p, s2);
     //Log.info("s1=" + s1 + " p1=" + p1 + " d1=" + d1);
     //Log.info("s2=" + s2 + " p2=" + p2 + " d2=" + d2);
     /*
