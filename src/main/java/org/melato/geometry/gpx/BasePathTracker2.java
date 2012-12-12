@@ -58,18 +58,19 @@ public abstract class BasePathTracker2 implements TrackingAlgorithm {
   /** Keeps track of 3-neighbor distances around currentIndex */
   class PositionState {
     PointTime position;
-    int currentIndex;
-    float[] distance = new float[4];
-    boolean[] computed = new boolean[distance.length];
+    float[] distance = null;
+    boolean[] computed = null;
     
-    public void setCurrentIndex( int currentIndex ) {
-      if ( currentIndex != this.currentIndex ) {
-        this.currentIndex = currentIndex;
-        reset();
+    private void init() {
+      if ( distance == null ) {
+        distance = new float[path.size()];
+        computed = new boolean[path.size()];
       }
     }
     public void reset() {
-      Arrays.fill(computed,  0, computed.length, false);
+      if ( computed != null ) {
+        Arrays.fill(computed,  0, computed.length, false);
+      }
     }
     void setLocation( PointTime position) {
       this.position = position;
@@ -80,50 +81,62 @@ public abstract class BasePathTracker2 implements TrackingAlgorithm {
     }
     /**
      * Return the distance of this location from a path waypoint 
-     * @param i The index of the waypoint, relative to the current waypoint, one of -1, 0, 1, 2 
+     * @param i The index of the waypoint 
      * @return
      */
-    float distance(int i) {
+    float absDistance(int waypointIndex) {
       if ( ! hasLocation() )
         return Float.NaN;
-      int waypointIndex = currentIndex+i;
       if ( waypointIndex < 0 || waypointIndex >= path.size() ) {
         return Float.NaN;
       }
-      int index = i + 1;
-      computed[index] = false;
-      if ( ! computed[index] ) {
-        computed[index] = true;
-        distance[index] = metric.distance(position, path.getWaypoint(waypointIndex));
+      init();
+      computed[waypointIndex] = false;
+      if ( ! computed[waypointIndex] ) {
+        computed[waypointIndex] = true;
+        distance[waypointIndex] = metric.distance(position, path.getWaypoint(waypointIndex));
       }
-      return distance[index];
+      return distance[waypointIndex];
+    }
+    /**
+     * Return the distance of this location from a path waypoint 
+     * @param offset The index of the waypoint, relative to the current waypoint. 
+     * @return
+     */
+    float distance(int offset) {
+      return absDistance(currentIndex+offset);
     }
     boolean hasLocation() {
       return position != null;
     }
   }
   
-  protected boolean inRange(int i) {
-    return i + currentIndex >= 0 && i + currentIndex < path.size();
+  protected boolean inValidOffset(int offset) {
+    return isValidIndex(currentIndex + offset);
+  }
+  
+  protected boolean isValidIndex(int waypointIndex) {
+    return waypointIndex >= 0 && waypointIndex < path.size();
+    
   }
   
   protected boolean isMoving(int from, int to) {
-    if ( ! inRange(from) || ! inRange(to) )
+    if ( ! isValidIndex(from) || ! isValidIndex(to) )
       return false;
     return isLeaving(from) && isApproaching(to);
   }
   
   
-  protected boolean isApproaching(int offset) {
+  protected boolean isApproaching(int waypointIndex) {
     if ( ! previous.hasLocation() )
       return false;
-    return current.distance(offset) <= previous.distance(offset);    
+    return current.absDistance(waypointIndex) <= previous.absDistance(waypointIndex);    
   }
   
-  protected boolean isLeaving(int offset) {
+  protected boolean isLeaving(int waypointIndex) {
     if ( ! previous.hasLocation() )
       return false;
-    return previous.distance(offset) <= current.distance(offset);    
+    return previous.absDistance(waypointIndex) <= current.absDistance(waypointIndex);    
   }
   
   @Override
@@ -218,8 +231,6 @@ public abstract class BasePathTracker2 implements TrackingAlgorithm {
   
   protected void setCurrentIndex(int index) {
     currentIndex = index;
-    current.setCurrentIndex(index);
-    previous.setCurrentIndex(index);
     currentWaypoint = path.getWaypoints()[currentIndex];          
   }  
   

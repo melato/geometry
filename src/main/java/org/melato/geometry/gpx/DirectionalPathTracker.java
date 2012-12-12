@@ -27,6 +27,20 @@ import org.melato.log.Log;
  * so that the current position moves from p1 to p2.
  */
 public class DirectionalPathTracker extends BasePathTracker2 {
+
+  private int findBestPair() {
+    int bestIndex = -1;
+    float bestDistance = 0;
+    int n = path.size() - 1;
+    for( int i = 0; i < n; i++ ) {
+      float pairDistance = Math.min(current.absDistance(i), current.absDistance(i+1));
+      if ( (bestIndex < 0 || pairDistance < bestDistance) && isMoving(i, i+1)) {
+        bestIndex = i;
+        bestDistance = pairDistance;
+      }
+    }
+    return bestIndex;
+  }
   
   @Override
   public void setLocation(PointTime point) {
@@ -36,11 +50,11 @@ public class DirectionalPathTracker extends BasePathTracker2 {
       return;
     }
     if ( inPath ) {        
-      if ( isLeaving(0) && isApproaching(1) ) {
+      if ( isLeaving(currentIndex) && isApproaching(currentIndex+1) ) {
         // we seem to be moving from 0 to 1
         pathPosition = interpolatePosition(0);
         //Log.info( "approaching " + currentWaypoint );
-      } else if ( isLeaving(1) && isApproaching(2) ) {
+      } else if ( isLeaving(currentIndex+1) && isApproaching(currentIndex+2) ) {
         // move to the next pair
         pathPosition = interpolatePosition(1);
         setCurrentIndex(currentIndex + 1);
@@ -51,15 +65,11 @@ public class DirectionalPathTracker extends BasePathTracker2 {
       }
     } else {
       setInitialLocation(point);
-      Log.info( "previous=" + previous.distance(-1) + " " + previous.distance(0) + " " + previous.distance(1));
-      Log.info( "current=" + current.distance(-1) + " " + current.distance(0) + " " + current.distance(1));
-      if ( isLeaving(0) && isApproaching(1) ) {
+      int best = findBestPair();
+      if ( best >= 0 ) {
+        setCurrentIndex(best);
         inPath = true;
         pathPosition = interpolatePosition(0);
-      } else if ( isLeaving(-1) && isApproaching(0) ) {
-        inPath = true;
-        pathPosition = interpolatePosition(-1);
-        setCurrentIndex(currentIndex - 1);
       }
     }
     //nearestIndex = path.findNearestIndex(location, currentIndex-1, currentIndex+1);
