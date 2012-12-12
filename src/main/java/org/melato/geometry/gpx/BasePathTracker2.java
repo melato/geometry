@@ -101,6 +101,19 @@ public abstract class BasePathTracker2 implements TrackingAlgorithm {
     boolean hasLocation() {
       return position != null;
     }
+    public int findNearestIndex() {
+      float minDistance = 0;
+      int minIndex = -1;
+      int size = path.size();
+      for( int i = 0; i < size; i++ ) {
+        float d = distance(i);
+        if ( minIndex < 0 || d < minDistance ) {
+          minDistance = d;
+          minIndex = i;
+        }
+      }
+      return minIndex;
+    }    
   }
   
   protected boolean isValidIndex(int waypointIndex) {
@@ -178,10 +191,9 @@ public abstract class BasePathTracker2 implements TrackingAlgorithm {
     return p1.getLat() == p2.getLat() && p1.getLon() == p2.getLon();
   }
   
-  protected void setInitialLocation(PointTime point) {
+  protected void setInitialLocation() {
     inPath = false;
-    setCurrentIndex(path.findNearestIndex(point));
-    setCurrentLocation(point);
+    setCurrentIndex(current.findNearestIndex());
     nearestIndex = currentIndex;
     if ( currentIndex == 0 ) {
       // assume we're before the start
@@ -195,7 +207,7 @@ public abstract class BasePathTracker2 implements TrackingAlgorithm {
       if ( current.distance(currentIndex-1) < current.distance(currentIndex+1) ) {
         pathPosition = interpolatePosition(currentIndex-1);
       } else {
-        pathPosition = interpolatePosition(currentIndex-1);
+        pathPosition = interpolatePosition(currentIndex);
       }
     }
   }    
@@ -255,21 +267,23 @@ public abstract class BasePathTracker2 implements TrackingAlgorithm {
     }
   }
   
-  protected float interpolatePosition(int index) {
-    if ( index < 0 ) {
+  protected float interpolatePosition(int lowIndex) {
+    if ( path.size() < 1 )
+      return 0;
+    if ( lowIndex < 0 ) {
       // we are before the start.  our position is negative
-      return - current.distance(index+1);
-    } else if ( index + 1 >= path.size() ) {
+      return -current.distance(0);
+    } else if ( lowIndex >= path.size() ) {
       // we are past the end.
-      return path.getLength() + current.distance(index + 1);
+      return path.getLength() + current.distance(path.size()-1);
     } else {
       // we are inside the path
-      float d1 = current.distance(index);
-      float d2 = current.distance(index+1);
-      float p1 = path.getLength(index);
-      float p2 = path.getLength(index + 1);
+      float d1 = current.distance(lowIndex);
+      float d2 = current.distance(lowIndex+1);
+      float p1 = path.getLength(lowIndex);
+      float p2 = path.getLength(lowIndex + 1);
       // adjust the nearest index, since we just calculated the distances
-      nearestIndex = index;
+      nearestIndex = lowIndex;
       if ( d1 >= d2 ) {
         nearestIndex++;
       }
@@ -277,16 +291,6 @@ public abstract class BasePathTracker2 implements TrackingAlgorithm {
     }
   }
   
-  void getDistances(PointTime point, int[] indexes, float[] distances) {
-    for( int i = 0; i < indexes.length; i++ ) {
-      distances[i] = 0;
-      int index = indexes[i];
-      if ( 0 <= index && index < path.size() -1 ) {
-        distances[i] = metric.distance(point, path.getWaypoint(indexes[i]));
-      }
-    }
-  }
-
   @Override
   public String toString() {
     StringBuilder buf = new StringBuilder();

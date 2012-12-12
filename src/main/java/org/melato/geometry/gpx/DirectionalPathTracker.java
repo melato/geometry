@@ -27,7 +27,6 @@ import org.melato.log.Log;
  * so that the current position moves from p1 to p2.
  */
 public class DirectionalPathTracker extends BasePathTracker2 {
-
   private int findBestPair() {
     int bestIndex = -1;
     float bestDistance = 0;
@@ -39,40 +38,74 @@ public class DirectionalPathTracker extends BasePathTracker2 {
         bestDistance = pairDistance;
       }
     }
+    //Log.info( "best=" + bestIndex);
     return bestIndex;
+  }
+  
+  /**
+   * Return true if the current position is near the current waypoint.
+   * The point is near if the distance from the current waypoint is smaller
+   * than the largest distance between the current waypoint and its two neighbors.
+   * @return
+   */
+  private boolean isNear() {
+    if ( ! isValidIndex(currentIndex) ) {
+      return false;
+    }
+    float limit = 0;
+    if ( isValidIndex(currentIndex-1) && isValidIndex(currentIndex+1)) {
+      limit = Math.max(path.getLength(currentIndex, currentIndex-1), path.getLength(currentIndex, currentIndex+1));
+    } else if ( isValidIndex(currentIndex-1) ) {
+      limit = path.getLength(currentIndex, currentIndex-1);
+    } else if ( isValidIndex(currentIndex+1) ) {
+      limit = path.getLength(currentIndex, currentIndex+1);
+    } else {
+      return false;
+    }
+    return current.distance(currentIndex) < limit;
+  }
+  
+  private boolean setBestLocation() {
+    int best = findBestPair();
+    if ( best >= 0 ) {
+      inPath = true;
+      setCurrentIndex(best);
+      pathPosition = interpolatePosition(best);
+      return true;
+    }
+    return false;
   }
   
   @Override
   public void setLocation(PointTime point) {
-    Log.info( "setLocation: " + point );
+    //Log.info( "setLocation: " + point );
     if ( ! setCurrentLocation(point)) {
-      Log.info( "setCurrentLocation: false" );
       return;
     }
     if ( inPath ) {        
       if ( isLeaving(currentIndex) && isApproaching(currentIndex+1) ) {
         // we seem to be moving from 0 to 1
-        pathPosition = interpolatePosition(0);
+        pathPosition = interpolatePosition(currentIndex);
         //Log.info( "approaching " + currentWaypoint );
       } else if ( isLeaving(currentIndex+1) && isApproaching(currentIndex+2) ) {
         // move to the next pair
-        pathPosition = interpolatePosition(1);
         setCurrentIndex(currentIndex + 1);
+        pathPosition = interpolatePosition(currentIndex+1);
+      } else if ( isNear() && findBestPair() < 0 ) {
+        // linger here, since there is no better place to go.
+        pathPosition = interpolatePosition(currentIndex);
       } else {
         //Log.info( "left path");
-        // we are not approaching any path waypoint.  Assume we are no longer following it.
-        setInitialLocation(point);
+        // we are not approaching any path waypoint.  Assume we are no longer following the route.
+        inPath = false;
+        setInitialLocation();
       }
     } else {
-      setInitialLocation(point);
-      int best = findBestPair();
-      if ( best >= 0 ) {
-        setCurrentIndex(best);
-        inPath = true;
-        pathPosition = interpolatePosition(0);
+      if ( ! setBestLocation() ) {
+        setInitialLocation();
       }
     }
     //nearestIndex = path.findNearestIndex(location, currentIndex-1, currentIndex+1);
-    Log.info( this );
+    //Log.info( this );
   }  
 }
