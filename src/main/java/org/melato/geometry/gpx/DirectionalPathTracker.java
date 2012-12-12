@@ -33,7 +33,7 @@ public class DirectionalPathTracker extends BasePathTracker2 {
     float bestDistance = 0;
     int n = path.size() - 1;
     for( int i = 0; i < n; i++ ) {
-      float pairDistance = Math.min(current.absDistance(i), current.absDistance(i+1));
+      float pairDistance = Math.min(current.distance(i), current.distance(i+1));
       if ( (bestIndex < 0 || pairDistance < bestDistance) && isMoving(i, i+1)) {
         bestIndex = i;
         bestDistance = pairDistance;
