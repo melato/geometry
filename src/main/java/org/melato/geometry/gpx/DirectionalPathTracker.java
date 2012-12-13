@@ -27,42 +27,42 @@ import org.melato.log.Log;
  * so that the current position moves from p1 to p2.
  */
 public class DirectionalPathTracker extends BasePathTracker2 {
+  
   private int findBestPair() {
     int bestIndex = -1;
     float bestDistance = 0;
     int n = path.size() - 1;
     for( int i = 0; i < n; i++ ) {
       float pairDistance = Math.min(current.distance(i), current.distance(i+1));
-      if ( (bestIndex < 0 || pairDistance < bestDistance) && isMoving(i, i+1)) {
+      if ( (bestIndex < 0 || pairDistance < bestDistance) && (isNear(i) || isNear(i+1)) && isMoving(i, i+1)) {
         bestIndex = i;
         bestDistance = pairDistance;
       }
     }
-    //Log.info( "best=" + bestIndex);
     return bestIndex;
   }
   
   /**
-   * Return true if the current position is near the current waypoint.
-   * The point is near if the distance from the current waypoint is smaller
-   * than the largest distance between the current waypoint and its two neighbors.
+   * Return true if the current position is near the specified waypoint.
+   * The point is near if the distance from the waypoint is smaller
+   * than the largest distance between the waypoint and its two neighbors.
    * @return
    */
-  private boolean isNear() {
-    if ( ! isValidIndex(currentIndex) ) {
+  private boolean isNear(int index) {
+    if ( ! isValidIndex(index) ) {
       return false;
     }
     float limit = 0;
-    if ( isValidIndex(currentIndex-1) && isValidIndex(currentIndex+1)) {
-      limit = Math.max(path.getLength(currentIndex, currentIndex-1), path.getLength(currentIndex, currentIndex+1));
-    } else if ( isValidIndex(currentIndex-1) ) {
-      limit = path.getLength(currentIndex, currentIndex-1);
-    } else if ( isValidIndex(currentIndex+1) ) {
-      limit = path.getLength(currentIndex, currentIndex+1);
+    if ( isValidIndex(index-1) && isValidIndex(index+1)) {
+      limit = Math.max(path.getLength(index, index-1), path.getLength(index, index+1));
+    } else if ( isValidIndex(index-1) ) {
+      limit = path.getLength(index, index-1);
+    } else if ( isValidIndex(index+1) ) {
+      limit = path.getLength(index, index+1);
     } else {
       return false;
     }
-    return current.distance(currentIndex) < limit;
+    return current.distance(index) < limit;
   }
   
   private boolean setBestLocation() {
@@ -83,22 +83,33 @@ public class DirectionalPathTracker extends BasePathTracker2 {
       return;
     }
     if ( inPath ) {        
-      if ( isLeaving(currentIndex) && isApproaching(currentIndex+1) ) {
-        // we seem to be moving from 0 to 1
+      if ( isMoving( currentIndex, currentIndex+1)) {
+        // we seem to be moving as expected
         pathPosition = interpolatePosition(currentIndex);
         //Log.info( "approaching " + currentWaypoint );
-      } else if ( isLeaving(currentIndex+1) && isApproaching(currentIndex+2) ) {
+      } else if ( isMoving(currentIndex+1, currentIndex+2) ) {
         // move to the next pair
         setCurrentIndex(currentIndex + 1);
-        pathPosition = interpolatePosition(currentIndex+1);
-      } else if ( isNear() && findBestPair() < 0 ) {
-        // linger here, since there is no better place to go.
         pathPosition = interpolatePosition(currentIndex);
       } else {
-        //Log.info( "left path");
-        // we are not approaching any path waypoint.  Assume we are no longer following the route.
-        inPath = false;
-        setInitialLocation();
+        boolean linger = false;
+        boolean near = isNear(currentIndex) || isNear(currentIndex+1);
+        //Log.info( "near=" + near + " best=" + best );
+        if ( near ) {
+          int best = findBestPair();
+          if ( best < 0 ) {
+            linger = true;
+          }
+        }
+        if ( linger ) {
+          // linger here, since there is no better place to go.
+          pathPosition = interpolatePosition(currentIndex);
+        } else {
+          Log.info( "left path, point=" + point );
+          // we are not approaching any path waypoint.  Assume we are no longer following the route.
+          inPath = false;
+          setInitialLocation();
+        }
       }
     } else {
       if ( ! setBestLocation() ) {
