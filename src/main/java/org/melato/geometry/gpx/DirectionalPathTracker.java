@@ -19,7 +19,6 @@
 package org.melato.geometry.gpx;
 
 import org.melato.gps.PointTime;
-import org.melato.log.Log;
 
 
 /**
@@ -91,6 +90,10 @@ public class DirectionalPathTracker extends BasePathTracker2 {
         // move to the next pair
         setCurrentIndex(currentIndex + 1);
         pathPosition = interpolatePosition(currentIndex);
+      } else if ( isMoving(currentIndex-1, currentIndex) ) {
+        // backtrack to the previous pair.  Sometimes it happens near currentIndex
+        setCurrentIndex(currentIndex - 1);
+        pathPosition = interpolatePosition(currentIndex);
       } else {
         boolean linger = false;
         boolean near = isNear(currentIndex) || isNear(currentIndex+1);
@@ -105,7 +108,7 @@ public class DirectionalPathTracker extends BasePathTracker2 {
           // linger here, since there is no better place to go.
           pathPosition = interpolatePosition(currentIndex);
         } else {
-          Log.info( "left path, point=" + point );
+          // Log.info( "left path, point=" + point );
           // we are not approaching any path waypoint.  Assume we are no longer following the route.
           inPath = false;
           setInitialLocation();
