@@ -29,11 +29,34 @@
 		<geo:crop
 			inputFile="${track.dir}/416_201212070907.gpx"
 			outputFile="${build.dir}/track.gpx"
-			time1="500"
-			time2="574"
+			time1="110"
+			time2="138"
 		>
 		</geo:crop>
 	</target>
+
+	<target name="copy" depends="init">
+		<copy
+			file="${track.dir}/416_201212070907.gpx"
+			tofile="${build.dir}/track.gpx">
+		</copy>
+	</target>
+
+
+	<target name="strip" depends="init">
+		<geo:strip
+			inputFile="${track.dir}/416_201212070907.gpx"
+			outputFile="${build.dir}/track.gpx">
+		</geo:strip>
+	</target>
+
+	<target name="view">
+		<geo:view
+			route="${routes.dir}/${route}.gpx"
+			track="${build.dir}/track.gpx">
+		</geo:view>
+	</target>
+
 
 	<target name="simple.path" depends="init">
 		<fail unless="route"/>
