@@ -18,8 +18,8 @@
  */
 package org.melato.geometry.test;
 
+import org.melato.gps.Metric;
 import org.melato.gps.Point2D;
-import org.melato.gpx.Metric;
 
 /** A test distance for testing algorithms with easier data. */
 public class TestMetric implements Metric {

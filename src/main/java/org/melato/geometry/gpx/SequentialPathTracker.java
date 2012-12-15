@@ -18,9 +18,8 @@
  */
 package org.melato.geometry.gpx;
 
+import org.melato.gps.Metric;
 import org.melato.gps.PointTime;
-import org.melato.gpx.Metric;
-import org.melato.gpx.util.Path;
 
 /**
  * PathTracker algorithm that assumes the incoming positions follow the set path.

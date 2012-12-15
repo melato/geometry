@@ -25,8 +25,6 @@ import java.util.List;
 import org.melato.gps.Earth;
 import org.melato.gps.Point2D;
 import org.melato.gps.PointTime;
-import org.melato.gpx.Waypoint;
-import org.melato.gpx.util.Path;
 
 /** Matches a track to one or more routes and returns a list of approaches.
  *  An approach is a pair of (route-index, track-index),
@@ -83,7 +81,7 @@ public class RouteMatcher {
     for( ; index < nextIndex; index++ ) {
       PointTime p1 = waypoints[index];
       PointTime p2 = waypoints[index+1];
-      float speed = Earth.distance(p1,  p2) - Waypoint.timeDifference(p1,  p2);
+      float speed = Earth.distance(p1,  p2) - PointTime.timeDifference(p1,  p2);
       if ( speed > startSpeed ) {
         return index;
       }
@@ -237,7 +235,7 @@ public class RouteMatcher {
     }
   }
 
-  private static String toString( Approach[] approaches, int start, int end ) {
+  public static String toString( Approach[] approaches, int start, int end ) {
     StringBuilder buf = new StringBuilder();
     buf.append( "[");
     int count = 0;

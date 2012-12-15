@@ -18,9 +18,8 @@
  */
 package org.melato.geometry.gpx;
 
+import org.melato.gps.Metric;
 import org.melato.gps.PointTime;
-import org.melato.gpx.Metric;
-import org.melato.gpx.util.Path;
 
 /**
  * Stateless path tracking algorithm that does not take into account location history

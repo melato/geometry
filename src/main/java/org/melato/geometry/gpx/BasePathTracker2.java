@@ -20,9 +20,8 @@ package org.melato.geometry.gpx;
 
 import java.util.Arrays;
 
+import org.melato.gps.Metric;
 import org.melato.gps.PointTime;
-import org.melato.gpx.Metric;
-import org.melato.gpx.util.Path;
 
 /**
  * base class for path tracker algorithms.

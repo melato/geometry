@@ -18,14 +18,13 @@
  */
 package org.melato.geometry.test;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.melato.geometry.gpx.ProximityFinder;
 import org.melato.gps.Earth;
-import org.melato.gpx.Waypoint;
+import org.melato.gps.PointTime;
 
 public class ProximityFinderTest {
   /**
@@ -39,18 +38,18 @@ public class ProximityFinderTest {
     int size = 30;
     int offset = 10;
     
-    Waypoint[] seq = new Waypoint[size];
+    PointTime[] seq = new PointTime[size];
     for( int i = 0; i < size; i++ ) {
-      seq[i] = new Waypoint(38 + (i-offset) * step + step / 3, lon);
+      seq[i] = new PointTime(38 + (i-offset) * step + step / 3, lon);
     }
-    Waypoint query = new Waypoint(lat, 24f + step);
-    Waypoint s0 = seq[offset];  // this is the nearest point on the sequence.
+    PointTime query = new PointTime(lat, 24f + step);
+    PointTime s0 = seq[offset];  // this is the nearest point on the sequence.
     ProximityFinder f = new ProximityFinder();
-    f.setWaypoints(Arrays.asList(seq));
+    f.setWaypoints(seq);
     float d = Earth.distance(s0, query);
     f.setTargetDistance(d + 50);
     Assert.assertTrue(f.isNear(query));
-    query = new Waypoint(lat, 24f + 2 * step );
+    query = new PointTime(lat, 24f + 2 * step );
     f.setTargetDistance(d);
     Assert.assertFalse(f.isNear(query));
   }
@@ -66,16 +65,16 @@ public class ProximityFinderTest {
     int size = 30;
     int offset = 10;
     
-    Waypoint[] seq = new Waypoint[size];
+    PointTime[] seq = new PointTime[size];
     for( int i = 0; i < size; i++ ) {
-      seq[i] = new Waypoint(38 + (i-offset) * step, lon);
+      seq[i] = new PointTime(38 + (i-offset) * step, lon);
       // seq[offset] should be the closest point
     }
-    Waypoint query = new Waypoint(lat, 24f + step);
-    Waypoint s0 = seq[offset];  // this is the nearest point on the sequence.
+    PointTime query = new PointTime(lat, 24f + step);
+    PointTime s0 = seq[offset];  // this is the nearest point on the sequence.
     float d = Earth.distance(s0, query);
     ProximityFinder f = new ProximityFinder();
-    f.setWaypoints(Arrays.asList(seq));
+    f.setWaypoints(seq);
     f.setTargetDistance(d + 50); // add a small amount to the known distance to account for rounding errors.
     List<Integer> nearby = f.findNearbyIndexes(query);
     Assert.assertEquals(1, nearby.size());
