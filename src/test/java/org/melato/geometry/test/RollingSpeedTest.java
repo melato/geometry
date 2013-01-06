@@ -52,5 +52,16 @@ public class RollingSpeedTest {
     Assert.assertEquals(5, speed.getCount());
     Assert.assertEquals(0.8f, speed.getSpeed(), 1e-5);
   }
+  public @Test void twoSpeeds() {
+    RollingSpeedManager speedManager = new RollingSpeedManager(new TestMetric());
+    RollingSpeed speed5 = speedManager.getRollingSpeed(5);
+    RollingSpeed speed10 = speedManager.getRollingSpeed(10);
+    for( int i = 0; i < 20; i++ ) {
+      PointTime p = new PointTime( i, 0);
+      p.setTime(i*1000L);
+      speedManager.addPoint(p);
+    }
+    Assert.assertEquals(1.0f, speed5.getSpeed(), 1e-5);
+  }
 
 }
