@@ -34,9 +34,11 @@ import org.melato.gps.PointTime;
  *  specified by the track.
  */
 public class RouteMatcher {
-  private Path  track;
+  private PointTime[] trackWaypoints;
+  private Path  trackPath;
   private ProximityFinder proximity;
   private float startSpeed;
+  public static float MAX_SPEED = 120f / 3600f * 1000f;  // remove speeds over 120 Km/h
   
   /**
    * An approach.
@@ -67,13 +69,10 @@ public class RouteMatcher {
   }
 
   public RouteMatcher(PointTime[] track, float proximityDistance ) {
-    this(new Path(track), proximityDistance);
-  }
-  
-  public RouteMatcher(Path track, float proximityDistance ) {
-    this.track = track;
+    this.trackWaypoints = track;
+    this.trackPath = new Path(track);
     proximity = new ProximityFinder();
-    proximity.setPath(track);
+    proximity.setPath(this.trackPath);
     proximity.setTargetDistance(proximityDistance);
   }
   
@@ -253,20 +252,65 @@ public class RouteMatcher {
     return buf.toString();
   }
   
-  public static void filter(List<Approach> list ) {
-    Approach[] approaches = list.toArray(new Approach[0]);
+  /**
+   * Pack all non-null approaches at the beginning of an array
+   * and return their number.
+   * @param approaches
+   * @return
+   */
+  public static int pack(Approach[] approaches) {
+    int n = 0;
+    for( int i = 0; i < approaches.length; i++ ) {
+      Approach a = approaches[i];
+      if ( a != null) {
+        approaches[n++] = a;
+      }
+    }
+    return n;    
+  }
+  
+  public void removeExcessiveSpeed(Approach[] approaches, Point2D[] route) {
+    int size = pack(approaches);
+    if ( size == 0 )
+      return;
+    Path routePath = new Path(route);
+    for(int i = 1 ; i < size; i++ ) {
+      PointTime p0 = (PointTime) trackPath.getWaypoint(approaches[i-1].trackIndex);
+      PointTime p =  (PointTime) trackPath.getWaypoint(approaches[i].trackIndex);
+      float time = PointTime.timeDifference(p0, p); 
+      float distance = routePath.getLength(approaches[i-1].routeIndex, approaches[i].routeIndex);
+      float speed = distance / time;
+            
+      if ( speed > MAX_SPEED ) {
+        // remove the smaller half
+        if ( 2 * i >= size ) {
+          // remove the right half
+          for( int j = i; j < size; j++ ) {
+            approaches[j] = null;
+          }
+          return;
+        } else {
+          // remove the left half
+          for( int j = 0; j < i; j++ ) {
+            approaches[j] = null;
+          }
+        }
+      }
+    }
+  }
+  
+  /**
+   * Sort the approaches chronologically (by track index)
+   * Remove duplicates (approaching the same waypoint twice in a row)
+   * Remove out of order (approaching the 10th waypoint before the 2nd one). 
+   * @param list
+   */
+  public static void filter(Approach[] approaches ) {
     Arrays.sort(approaches);
     removeOutOfOrder( approaches, 0, approaches.length );
     //System.out.println( "c: " + toString( approaches, 0, approaches.length ));
     removeDuplicates(approaches);
     //System.out.println( "d: " + toString( approaches, 0, approaches.length ));
-    list.clear();
-    for( int i = 0; i < approaches.length; i++ ) {
-      Approach a = approaches[i];
-      if ( a != null ) {
-        list.add(a);
-      }
-    }
   }
   
   /** Matches our track to the given route.
@@ -277,6 +321,7 @@ public class RouteMatcher {
     List<Approach> list = new ArrayList<Approach>();
     List<Integer> nearby = new ArrayList<Integer>();
     int routeSize = route.length;
+    // find track points that are nearby the route waypoint
     for( int i = 0; i < routeSize; i++ ) {
       nearby.clear();
       proximity.findNearby(route[i], nearby);
@@ -286,11 +331,14 @@ public class RouteMatcher {
         list.add( new Approach(i, nearby.get(j)));
       }
     }
-    filter(list);
-    if ( list.size() > 1 ) {
-      int firstIndex = trim(track.getWaypoints(), list.get(0).trackIndex, list.get(1).trackIndex);      
+    Approach[] approaches = list.toArray(new Approach[0]);
+    filter(approaches);
+    removeExcessiveSpeed(approaches, route);
+    int size = pack(approaches);
+    if ( size > 1 ) {
+      int firstIndex = trim(trackWaypoints, approaches[0].trackIndex, approaches[1].trackIndex);      
       list.get(0).trackIndex = firstIndex;
     }
-    return list;
+    return Arrays.asList(approaches).subList(0,  size);
   }
 }

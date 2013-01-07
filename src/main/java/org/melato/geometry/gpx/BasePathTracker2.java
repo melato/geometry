@@ -21,6 +21,7 @@ package org.melato.geometry.gpx;
 import java.util.Arrays;
 
 import org.melato.gps.Metric;
+import org.melato.gps.Point2D;
 import org.melato.gps.PointTime;
 
 /**
@@ -44,7 +45,7 @@ public abstract class BasePathTracker2 implements TrackingAlgorithm {
   protected int   currentIndex = -1;
 
   /** The waypoint at the current index */
-  protected PointTime currentWaypoint;
+  protected Point2D currentWaypoint;
   
   protected boolean inPath;
 
