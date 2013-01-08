@@ -266,11 +266,15 @@ public class RouteMatcher {
         approaches[n++] = a;
       }
     }
+    for( int i = n; i < approaches.length; i++ ) {
+      approaches[i] = null;
+    }
     return n;    
   }
   
   public void removeExcessiveSpeed(Approach[] approaches, Point2D[] route) {
     int size = pack(approaches);
+    //System.out.println( "removeExcessiveSpeed: size=" + size);
     if ( size == 0 )
       return;
     Path routePath = new Path(route);
@@ -332,6 +336,7 @@ public class RouteMatcher {
       }
     }
     Approach[] approaches = list.toArray(new Approach[0]);
+    //System.out.println( "match.approaches=" + approaches.length);
     filter(approaches);
     removeExcessiveSpeed(approaches, route);
     int size = pack(approaches);
