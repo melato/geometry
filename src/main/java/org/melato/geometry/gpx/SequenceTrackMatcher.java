@@ -43,7 +43,7 @@ public class SequenceTrackMatcher implements TrackMatchingAlgorithm {
    * @param score
    */
   public Score computeScore(PointTime[] route) {
-    Score score = new Score();
+    SimpleScore score = new SimpleScore();
     List<Approach> approaches = matcher.match(route);
     score.setCount(approaches.size());
     return score;
@@ -58,8 +58,9 @@ public class SequenceTrackMatcher implements TrackMatchingAlgorithm {
   /** Get the score components as an array (corresponding to the field names).  Use for debugging. */
   @Override
   public Object[] getFields(Score score) {
+    SimpleScore s = (SimpleScore) score;
     return new Object[] {
-        score.getId(),
-        score.getCount()};
+        s.getId(),
+        s.getCount()};
   }
 }

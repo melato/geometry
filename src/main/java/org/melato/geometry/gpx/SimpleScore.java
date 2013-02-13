@@ -18,34 +18,31 @@
  */
 package org.melato.geometry.gpx;
 
-
-/** A generic score for track matching.  Should be subclassed by each matching algorithm */ 
-public abstract class Score implements Comparable<Score> {
-  private Object  id;
-    
-  /**
-   * The id of the score, as passed in the constructor.
-   * Used for identification.
-   * @return
-   */
-  public Object getId() {
-    return id;
-  }
-  
-  public void setId(Object id) {
-    this.id = id;
-  }
-  
-  public Score() {
+/** A score that has an integer count.  Higher count is better. */ 
+public class SimpleScore extends Score {
+  private int     count;
+  public SimpleScore() {
   }
 
-  public Score(Object id) {
-    super();
-    this.id = id;
+  public SimpleScore(Object id) {
+    super(id);
+  }
+
+  public int getCount() {
+    return count;
+  }
+
+  public void setCount(int count) {
+    this.count = count;
   }
 
   @Override
+  public int compareTo(Score score) {
+    SimpleScore s = (SimpleScore)score;
+    return s.count - count;
+  }
+  @Override
   public String toString() {
-    return String.valueOf(getId());
+    return getId() + " " + count;
   }  
 }
