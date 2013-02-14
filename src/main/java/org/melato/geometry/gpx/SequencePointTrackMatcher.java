@@ -49,6 +49,10 @@ public class SequencePointTrackMatcher implements TrackMatchingAlgorithm {
     private int     points;
     /** Length of time in milliseconds */
     private long    time;
+    /** The number of gaps in the matched route points */
+    private int gaps;
+    /** The number of route points not matched inside the matched length */
+    private int missing;
     public SequenceScore() {
     }
 
@@ -79,6 +83,22 @@ public class SequencePointTrackMatcher implements TrackMatchingAlgorithm {
     public void setTime(long time) {
       this.time = time;
     }
+    
+    public int getGaps() {
+      return gaps;
+    }
+
+    public void setGaps(int gaps) {
+      this.gaps = gaps;
+    }
+    
+    public int getMissing() {
+      return missing;
+    }
+
+    public void setMissing(int missing) {
+      this.missing = missing;
+    }
 
     @Override
     public int compareTo(Score score) {
@@ -93,6 +113,43 @@ public class SequencePointTrackMatcher implements TrackMatchingAlgorithm {
     }    
   }
   
+  static int countGaps(Iterable<Approach> approaches) {
+    int gaps = 0;
+    int lastRouteIndex = -1;
+    for( Approach approach: approaches ) {
+      int routeIndex = approach.routeIndex;
+      if ( lastRouteIndex >= 0 && lastRouteIndex + 1 != routeIndex ) {
+        gaps++;
+      }
+      lastRouteIndex = routeIndex;
+    }
+    return gaps;
+  }
+  
+  static int countMissing(Iterable<Approach> approaches) {
+    int missing = 0;
+    int lastRouteIndex = -1;
+    for( Approach approach: approaches ) {
+      int routeIndex = approach.routeIndex;
+      if ( lastRouteIndex >= 0 ) {
+        missing += routeIndex - lastRouteIndex - 1;
+      }
+      lastRouteIndex = routeIndex;
+    }
+    return missing;
+  }
+  
+  static int countPassedPoints(Iterable<Approach> approaches) {
+    int count = 0;
+    Approach lastApproach = null;
+    for( Approach approach: approaches ) {
+      if ( lastApproach != null && approach.routeIndex == lastApproach.routeIndex + 1 ) {
+        count += approach.trackIndex - lastApproach.trackIndex;
+      }
+      lastApproach = approach;
+    }
+    return count;
+  }
   
   /** Compute the score for a route.
    * @param route The route, specified as a sequence of waypoints.
@@ -105,7 +162,9 @@ public class SequencePointTrackMatcher implements TrackMatchingAlgorithm {
     if ( size > 0 ) {
       int index1 = approaches.get(0).trackIndex;
       int index2 = approaches.get(size-1).trackIndex;
-      score.setPoints(index2 - index1);
+      score.setPoints(countPassedPoints(approaches));
+      score.setGaps(countGaps(approaches));
+      score.setMissing(countMissing(approaches));
       score.setMatches(size);
       score.setTime(track[index2].time - track[index1].time);
     }
@@ -116,7 +175,7 @@ public class SequencePointTrackMatcher implements TrackMatchingAlgorithm {
   @Override
   public String[] getScoreFieldNames() {
     return new String[] {
-        "id", "stops", "points", "time"};      
+        "id", "stops", "missing", "gaps", "points", "time"};      
   }
   /** Get the score components as an array (corresponding to the field names).  Use for debugging. */
   @Override
@@ -125,6 +184,8 @@ public class SequencePointTrackMatcher implements TrackMatchingAlgorithm {
     return new Object[] {
         s.getId(),
         s.getMatches(),
+        s.getMissing(),
+        s.getGaps(),
         s.getPoints(),
         s.getTime()};
   }
@@ -139,8 +200,6 @@ public class SequencePointTrackMatcher implements TrackMatchingAlgorithm {
   public boolean areClose(Score score1, Score score2) {
     SequenceScore s1 = (SequenceScore) score1;
     SequenceScore s2 = (SequenceScore) score2;
-    return Math.abs(s1.getTime() - s2.getTime()) <= 2000L || Math.abs(s1.getPoints() - s2.getPoints()) <= 1; 
+    return Math.abs(s1.getTime() - s2.getTime()) <= 5000L || Math.abs(s1.getPoints() - s2.getPoints()) <= 1; 
   }
-  
-  
 }

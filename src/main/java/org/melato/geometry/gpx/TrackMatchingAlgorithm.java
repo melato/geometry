@@ -27,11 +27,23 @@ import org.melato.gps.PointTime;
  *
  */
 public interface TrackMatchingAlgorithm {
+  /** Set the distance to use when determining if a track point matches a route point. */
   void setProximityDistance(float targetDistance);
+  
+  /** Define the track to match against. */
   void setTrack(PointTime[] track);
+  
+  /** Compute the score for a route. */
   Score computeScore(PointTime[] route);
-  String[] getScoreFieldNames();
-  Object[] getFields(Score score);
+  /** Return true if this is the worse score possible, e.g. total mismatch. */
   boolean isMinimal(Score score);
+  
+  /** Determine if two scores are close enough so that a strict comparison between them may not be accurate */
   boolean areClose(Score score1, Score score2 );
+  
+  /** Get the names of the score fields (used for debugging). */ 
+  String[] getScoreFieldNames();
+  /** Get the values of the score fields (used for debugging). */ 
+  Object[] getFields(Score score);
+  
 }
