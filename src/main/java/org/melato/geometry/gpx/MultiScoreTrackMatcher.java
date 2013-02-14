@@ -220,4 +220,11 @@ public class MultiScoreTrackMatcher implements TrackMatchingAlgorithm {
         s.getDominantDirection(),
     };      
   }
+
+  @Override
+  public boolean isMinimal(Score score) {
+    MultiScore s = (MultiScore)score;
+    return s.getNearCount() == 0;
+  }
+  
 }

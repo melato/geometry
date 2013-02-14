@@ -47,7 +47,9 @@ public class RouteMatcher {
    *
    */
   public static class Approach implements Comparable<Approach> {
+    /** The index of the route waypoint */ 
     public int routeIndex;
+    /** The index of the track waypoint */ 
     public int trackIndex;
     boolean visited;
     public Approach(int routeIndex, int trackIndex) {
@@ -62,6 +64,11 @@ public class RouteMatcher {
         return d;
       return routeIndex - a.routeIndex;
     }
+    @Override
+    public String toString() {
+      return "Approach [routeIndex=" + routeIndex + ", trackIndex="
+          + trackIndex + ", visited=" + visited + "]";
+    }    
   }
   
   public void setStartSpeed(float startSpeed) {

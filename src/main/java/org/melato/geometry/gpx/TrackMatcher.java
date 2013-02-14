@@ -28,7 +28,7 @@ import org.melato.gps.PointTime;
  *
  */
 public class TrackMatcher {
-  private TrackMatchingAlgorithm algorithm = new SequenceTrackMatcher();
+  private TrackMatchingAlgorithm algorithm = new SequencePointTrackMatcher();
 
   public TrackMatcher(PointTime[] trackWaypoints, float targetDistance) {
     algorithm.setProximityDistance(targetDistance);

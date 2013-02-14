@@ -32,4 +32,5 @@ public interface TrackMatchingAlgorithm {
   Score computeScore(PointTime[] route);
   String[] getScoreFieldNames();
   Object[] getFields(Score score);
+  boolean isMinimal(Score score);
 }

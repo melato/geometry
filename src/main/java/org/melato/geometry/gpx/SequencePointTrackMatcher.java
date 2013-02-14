@@ -23,8 +23,9 @@ import java.util.List;
 import org.melato.geometry.gpx.RouteMatcher.Approach;
 import org.melato.gps.PointTime;
 
-/** A track matcher that matches the track stops to the route and returns the number of matched stops. */
-public class SequenceTrackMatcher implements TrackMatchingAlgorithm {
+/** A track matcher that matches the track stops to the route and returns
+ * the number of track points from from the first to the last match. */
+public class SequencePointTrackMatcher implements TrackMatchingAlgorithm {
   private float proximityDistance;
   private RouteMatcher matcher;
   
@@ -46,7 +47,12 @@ public class SequenceTrackMatcher implements TrackMatchingAlgorithm {
   public Score computeScore(PointTime[] route) {
     SimpleScore score = new SimpleScore();
     List<Approach> approaches = matcher.match(route);
-    score.setCount(approaches.size());
+    int pointCount = 0;
+    int size = approaches.size();
+    if ( size > 0 ) {
+      pointCount = approaches.get(size-1).trackIndex - approaches.get(0).trackIndex; 
+    }
+    score.setCount(pointCount);
     return score;
   }
   
