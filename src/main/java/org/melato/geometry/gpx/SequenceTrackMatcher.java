@@ -21,6 +21,7 @@ package org.melato.geometry.gpx;
 import java.util.List;
 
 import org.melato.geometry.gpx.RouteMatcher.Approach;
+import org.melato.geometry.gpx.SequencePointTrackMatcher.SequenceScore;
 import org.melato.gps.PointTime;
 
 /** A track matcher that matches the track stops to the route and returns the number of matched stops. */
@@ -38,6 +39,34 @@ public class SequenceTrackMatcher implements TrackMatchingAlgorithm {
     matcher = new RouteMatcher(track, proximityDistance);
   }
 
+  /** A score that has an integer count.  Higher count is better. */ 
+  public class SimpleScore extends Score {
+    private int     count;
+    public SimpleScore() {
+    }
+
+    public SimpleScore(Object id) {
+      super(id);
+    }
+
+    public int getCount() {
+      return count;
+    }
+
+    public void setCount(int count) {
+      this.count = count;
+    }
+
+    @Override
+    public int compareTo(Score score) {
+      SimpleScore s = (SimpleScore)score;
+      return s.count - count;
+    }
+    @Override
+    public String toString() {
+      return getId() + " " + count;
+    }  
+  }
   
   /** Compute the score for a route.
    * @param route The route, specified as a sequence of waypoints.
@@ -69,5 +98,12 @@ public class SequenceTrackMatcher implements TrackMatchingAlgorithm {
   public boolean isMinimal(Score score) {
     SimpleScore s = (SimpleScore) score;
     return s.getCount() == 0;
+  }
+  
+  @Override
+  public boolean areClose(Score score1, Score score2) {
+    SimpleScore s1 = (SimpleScore) score1;
+    SimpleScore s2 = (SimpleScore) score2;
+    return Math.abs(s1.getCount() - s2.getCount()) <= 1;
   }
 }

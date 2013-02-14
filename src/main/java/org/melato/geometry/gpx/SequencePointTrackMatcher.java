@@ -28,6 +28,7 @@ import org.melato.gps.PointTime;
 public class SequencePointTrackMatcher implements TrackMatchingAlgorithm {
   private float proximityDistance;
   private RouteMatcher matcher;
+  private PointTime[] track;
   
   @Override
   public void setProximityDistance(float targetDistance) {
@@ -36,23 +37,78 @@ public class SequencePointTrackMatcher implements TrackMatchingAlgorithm {
 
   @Override
   public void setTrack(PointTime[] track) {
+    this.track = track;
     matcher = new RouteMatcher(track, proximityDistance);
   }
 
+  /** A score that has an integer count and a time.  Higher count is better. */ 
+  public class SequenceScore extends Score {
+    /** Number of matched waypoints */
+    private int     matches;
+    /** Number of track points */
+    private int     points;
+    /** Length of time in milliseconds */
+    private long    time;
+    public SequenceScore() {
+    }
+
+    public SequenceScore(Object id) {
+      super(id);
+    }
+
+    public int getMatches() {
+      return matches;
+    }
+
+    public void setMatches(int waypoints) {
+      this.matches = waypoints;
+    }
+
+    public int getPoints() {
+      return points;
+    }
+
+    public void setPoints(int points) {
+      this.points = points;
+    }
+
+    public long getTime() {
+      return time;
+    }
+
+    public void setTime(long time) {
+      this.time = time;
+    }
+
+    @Override
+    public int compareTo(Score score) {
+      SequenceScore s = (SequenceScore)score;
+      return s.points - points;
+    }
+
+    @Override
+    public String toString() {
+      return "SequenceScore [waypoints=" + matches + ", points=" + points
+          + ", time=" + time + "]";
+    }    
+  }
+  
   
   /** Compute the score for a route.
    * @param route The route, specified as a sequence of waypoints.
    * @param score
    */
   public Score computeScore(PointTime[] route) {
-    SimpleScore score = new SimpleScore();
+    SequenceScore score = new SequenceScore();
     List<Approach> approaches = matcher.match(route);
-    int pointCount = 0;
     int size = approaches.size();
     if ( size > 0 ) {
-      pointCount = approaches.get(size-1).trackIndex - approaches.get(0).trackIndex; 
+      int index1 = approaches.get(0).trackIndex;
+      int index2 = approaches.get(size-1).trackIndex;
+      score.setPoints(index2 - index1);
+      score.setMatches(size);
+      score.setTime(track[index2].time - track[index1].time);
     }
-    score.setCount(pointCount);
     return score;
   }
   
@@ -60,20 +116,31 @@ public class SequencePointTrackMatcher implements TrackMatchingAlgorithm {
   @Override
   public String[] getScoreFieldNames() {
     return new String[] {
-        "id", "count"};      
+        "id", "stops", "points", "time"};      
   }
   /** Get the score components as an array (corresponding to the field names).  Use for debugging. */
   @Override
   public Object[] getFields(Score score) {
-    SimpleScore s = (SimpleScore) score;
+    SequenceScore s = (SequenceScore) score;
     return new Object[] {
         s.getId(),
-        s.getCount()};
+        s.getMatches(),
+        s.getPoints(),
+        s.getTime()};
   }
   
   @Override
   public boolean isMinimal(Score score) {
-    SimpleScore s = (SimpleScore) score;
-    return s.getCount() == 0;
+    SequenceScore s = (SequenceScore) score;
+    return s.getPoints() == 0;
   }
+
+  @Override
+  public boolean areClose(Score score1, Score score2) {
+    SequenceScore s1 = (SequenceScore) score1;
+    SequenceScore s2 = (SequenceScore) score2;
+    return Math.abs(s1.getTime() - s2.getTime()) <= 2000L || Math.abs(s1.getPoints() - s2.getPoints()) <= 1; 
+  }
+  
+  
 }

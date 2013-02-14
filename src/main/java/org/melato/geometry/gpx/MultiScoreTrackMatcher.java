@@ -226,5 +226,10 @@ public class MultiScoreTrackMatcher implements TrackMatchingAlgorithm {
     MultiScore s = (MultiScore)score;
     return s.getNearCount() == 0;
   }
-  
+  @Override
+  public boolean areClose(Score score1, Score score2) {
+    MultiScore s1 = (MultiScore) score1;
+    MultiScore s2 = (MultiScore) score2;
+    return Math.abs(s1.getNearCount() - s2.getNearCount()) <= 1;
+  }
 }

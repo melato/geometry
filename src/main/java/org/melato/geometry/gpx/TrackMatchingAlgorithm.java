@@ -33,4 +33,5 @@ public interface TrackMatchingAlgorithm {
   String[] getScoreFieldNames();
   Object[] getFields(Score score);
   boolean isMinimal(Score score);
+  boolean areClose(Score score1, Score score2 );
 }
