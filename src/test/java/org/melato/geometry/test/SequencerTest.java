@@ -44,6 +44,11 @@ public class SequencerTest {
             new int[] {-1,1, 2, -1} );
   }
 
+  public @Test void filterDuplicates3() {
+    verify( new int[] {1, 1, 1, 2, 2},
+            new int[] {-1,-1,1, 2, -1} );
+  }
+
   public @Test void filterHairpin() {
     verify( new int[] {2, 19, 3, 18, 4, 17},
             new int[] {2, -1, 3, -1, 4, 17});
